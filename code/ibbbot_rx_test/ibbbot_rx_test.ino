@@ -1,5 +1,6 @@
 
-#include "VirtualWire.h"
+//#define VW_RX_ONLY
+#include <VirtualWire.h>
 
 uint8_t rxBuffer[VW_MAX_MESSAGE_LEN];
 uint8_t rxBufLen = VW_MAX_MESSAGE_LEN;
@@ -10,7 +11,7 @@ void setup()
   Serial.println("setup");
 
   // Initialise the IO and ISR
-  vw_set_rx_pin(12); // data RX pin
+  vw_set_rx_pin(11); // data RX pin
   vw_setup(5000);    // Bits per sec
   vw_rx_start();     // Start the receiver PLL running
 

@@ -19,6 +19,9 @@
 #include "VirtualWire.h"
 #include <util/crc16.h>
 
+
+#ifndef VW_RX_ONLY
+
 static uint8_t vw_tx_buf[(VW_MAX_MESSAGE_LEN * 2) + VW_HEADER_LEN] 
      = {0x2a, 0x2a, 0x2a, 0x2a, 0x2a, 0x2a, 0x38, 0x2c};
 
@@ -44,11 +47,15 @@ static uint16_t vw_tx_msg_count = 0;
 static uint8_t vw_ptt_pin = 10;
 static uint8_t vw_ptt_inverted = 0;
 
-// The digital IO pin number of the receiver data
-static uint8_t vw_rx_pin = 11;
-
 // The digital IO pin number of the transmitter data
 static uint8_t vw_tx_pin = 12;
+
+#endif
+
+#ifndef VW_TX_ONLY
+
+// The digital IO pin number of the receiver data
+static uint8_t vw_rx_pin = 11;
 
 // Current receiver sample
 static uint8_t vw_rx_sample = 0;
@@ -97,6 +104,8 @@ static uint8_t vw_rx_bad = 0;
 // Number of good messages received
 static uint8_t vw_rx_good = 0;
 
+#endif
+
 // 4 bit to 6 bit symbol converter table
 // Used to convert the high and low nybbles of the transmitted data
 // into 6 bit symbols for transmission. Each 6-bit symbol has 3 1s and 3 0s 
@@ -123,6 +132,8 @@ uint16_t vw_crc(uint8_t *ptr, uint8_t count)
     return crc;
 }
 
+#ifndef VW_TX_ONLY
+
 // Convert a 6 bit encoded symbol into its 4 bit decoded equivalent
 uint8_t vw_symbol_6to4(uint8_t symbol)
 {
@@ -134,16 +145,20 @@ uint8_t vw_symbol_6to4(uint8_t symbol)
     return 0; // Not found
 }
 
-// Set the output pin number for transmitter data
-void vw_set_tx_pin(uint8_t pin)
-{
-    vw_tx_pin = pin;
-}
-
 // Set the pin number for input receiver data
 void vw_set_rx_pin(uint8_t pin)
 {
     vw_rx_pin = pin;
+}
+
+#endif
+
+#ifndef VW_RX_ONLY
+
+// Set the output pin number for transmitter data
+void vw_set_tx_pin(uint8_t pin)
+{
+    vw_tx_pin = pin;
 }
 
 // Set the output pin number for transmitter PTT enable
@@ -158,6 +173,9 @@ void vw_set_ptt_inverted(uint8_t inverted)
     vw_ptt_inverted = inverted;
 }
 
+#endif 
+
+#ifndef VW_TX_ONLY
 // Called 8 times per bit period
 // Phase locked loop tries to synchronise with the transmitter so that bit 
 // transitions occur at about the time vw_rx_pll_ramp is 0;
@@ -250,6 +268,8 @@ void vw_pll()
     }
 }
 
+#endif
+
 // Speed is in bits per sec RF rate
 void vw_setup(uint16_t speed)
 {
@@ -276,12 +296,17 @@ void vw_setup(uint16_t speed)
 #endif
 
     // Set up digital IO pins
-    pinMode(vw_tx_pin, OUTPUT);
+#ifndef VW_TX_ONLY
     pinMode(vw_rx_pin, INPUT);
+#endif
+#ifndef VW_RX_ONLY
+    pinMode(vw_tx_pin, OUTPUT);
     pinMode(vw_ptt_pin, OUTPUT);
     digitalWrite(vw_ptt_pin, vw_ptt_inverted);
+#endif
 }
 
+#ifndef VW_RX_ONLY
 // Start the transmitter, call when the tx buffer is ready to go and vw_tx_len is
 // set to the total number of symbols to send
 void vw_tx_start()
@@ -308,23 +333,6 @@ void vw_tx_stop()
     vw_tx_enabled = false;
 }
 
-// Enable the receiver. When a message becomes available, vw_rx_done flag
-// is set, and vw_wait_rx() will return.
-void vw_rx_start()
-{
-    if (!vw_rx_enabled)
-    {
-	vw_rx_enabled = true;
-	vw_rx_active = false; // Never restart a partial message
-    }
-}
-
-// Disable the receiver
-void vw_rx_stop()
-{
-    vw_rx_enabled = false;
-}
-
 // Return true if the transmitter is active
 uint8_t vx_tx_active()
 {
@@ -337,26 +345,6 @@ void vw_wait_tx()
 {
     while (vw_tx_enabled)
 	;
-}
-
-// Wait for the receiver to get a message
-// Busy-wait loop until the ISR says a message is available
-// can then call vw_get_message()
-void vw_wait_rx()
-{
-    while (!vw_rx_done)
-	;
-}
-
-// Wait at most max milliseconds for the receiver to receive a message
-// Return the truth of whether there is a message
-uint8_t vw_wait_rx_max(unsigned long milliseconds)
-{
-    unsigned long start = millis();
-
-    while (!vw_rx_done && ((millis() - start) < milliseconds))
-	;
-    return vw_rx_done;
 }
 
 
@@ -409,6 +397,48 @@ uint8_t vw_send(uint8_t* buf, uint8_t len)
 
     return true;
 }
+#endif
+
+#ifndef VW_TX_ONLY
+
+// Enable the receiver. When a message becomes available, vw_rx_done flag
+// is set, and vw_wait_rx() will return.
+void vw_rx_start()
+{
+    if (!vw_rx_enabled)
+    {
+	vw_rx_enabled = true;
+	vw_rx_active = false; // Never restart a partial message
+    }
+}
+
+// Disable the receiver
+void vw_rx_stop()
+{
+    vw_rx_enabled = false;
+}
+
+// Wait for the receiver to get a message
+// Busy-wait loop until the ISR says a message is available
+// can then call vw_get_message()
+void vw_wait_rx()
+{
+    while (!vw_rx_done)
+	;
+}
+
+// Wait at most max milliseconds for the receiver to receive a message
+// Return the truth of whether there is a message
+uint8_t vw_wait_rx_max(unsigned long milliseconds)
+{
+    unsigned long start = millis();
+
+    while (!vw_rx_done && ((millis() - start) < milliseconds))
+	;
+    return vw_rx_done;
+}
+
+#endif
 
 
 // This is the interrupt service routine called when timer1 overflows
@@ -417,8 +447,11 @@ uint8_t vw_send(uint8_t* buf, uint8_t len)
 //ISR(SIG_OUTPUT_COMPARE1A)
 SIGNAL(TIMER1_COMPA_vect)
 {
+#ifndef VW_TX_ONLY
     vw_rx_sample = digitalRead(vw_rx_pin);
+#endif
 
+#ifndef VW_RX_ONLY
     // Do transmitter stuff first to reduce transmitter bit jitter due 
     // to variable receiver processing
     if (vw_tx_enabled && vw_tx_sample++ == 0)
@@ -444,10 +477,20 @@ SIGNAL(TIMER1_COMPA_vect)
     }
     if (vw_tx_sample > 7)
 	vw_tx_sample = 0;
+#endif
 
+#ifndef VW_TX_ONLY
+#ifdef VW_RX_ONLY
+    if (vw_rx_enabled)
+	vw_pll();
+#else
     if (vw_rx_enabled && !vw_tx_enabled)
 	vw_pll();
+#endif
+#endif
 }
+
+#ifndef VW_TX_ONLY
 
 // Return true if there is a message available
 uint8_t vw_have_message()
@@ -480,5 +523,6 @@ uint8_t vw_get_message(uint8_t* buf, uint8_t* len)
     // Check the FCS, return goodness
     return (vw_crc(vw_rx_buf, vw_rx_len) == 0xf0b8); // FCS OK?
 }
+#endif
 
 }
