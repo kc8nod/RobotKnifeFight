@@ -33,8 +33,8 @@ def groupPoints(pointList, minDistance):
   
 
 if __name__ == '__main__':
-  img = cv.LoadImage(sys.argv[1])
-  imgGrey = cv.LoadImage(sys.argv[1], cv.CV_LOAD_IMAGE_GRAYSCALE)
+  img = cv.LoadImage(sys.argv[-1])
+  imgGrey = cv.LoadImage(sys.argv[-1], cv.CV_LOAD_IMAGE_GRAYSCALE)
 
   # smooth
   imgGreySm = cv.CreateImage(cv.GetSize(imgGrey), imgGrey.depth, 1)
