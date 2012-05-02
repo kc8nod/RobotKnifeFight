@@ -10,6 +10,7 @@ SerialCommand sCmd;     // The SerialCommand object
 unsigned char tx_enabled_flag = 0;
 long xmit_time = 0;
 RKF_Packet send_pkt_buffer;
+int send_data_len;
 
 int xmit_period = 500;
 int baud_rate   = 2400;
@@ -18,7 +19,7 @@ void (*softReset) (void) = 0; // soft reset function
 
 
 void setup() {
-  
+    
   memset((void*)&send_pkt_buffer, 0, sizeof(send_pkt_buffer));
 
   pinMode(LED_PIN, OUTPUT);      // Configure the onboard LED for output
@@ -30,6 +31,7 @@ void setup() {
   sCmd.addCommand("pos",   set_position);  // send position report for a robot
   sCmd.addCommand("start", start_tx);      // start transmitting
   sCmd.addCommand("reset", softReset);
+  sCmd.addCommand("data",  send_raw_data);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't defined
   Serial.println("Ready");
 }
@@ -48,7 +50,7 @@ void loop()
     
     // transmit the packet
     vw_wait_tx();
-    vw_send((uint8_t*) &send_pkt_buffer, sizeof(send_pkt_buffer));
+    vw_send((uint8_t*) &send_pkt_buffer, send_data_len);
 
     Serial.print("tx ");
     Serial.println(tx_msg_count++);
@@ -81,9 +83,28 @@ void set_position()
   pRobot->y       = y_pos;
   pRobot->heading = heading;
   pRobot->valid   = valid;
+  
+  send_data_len = sizeof(send_pkt_buffer);
 
   printPacket(send_pkt_buffer);
   
+}
+
+void send_raw_data()
+{
+ char* arg;
+ uint8_t* ptr = (uint8_t*)&send_pkt_buffer;
+ send_data_len = 0;
+
+ while(1)
+ {
+   arg = sCmd.next();
+   if(arg == NULL) break;
+   
+   *ptr = byte(atoi(arg));
+   send_data_len++;
+ }
+ 
 }
 
 

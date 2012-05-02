@@ -15,10 +15,19 @@ class RKF_Packet
 {
   public:
   
-  byte command;
-  byte reserved0;
-  byte reserved1;
-  
-  RKF_Position robot[8];  
+  union
+  {
+    byte data[27];
+    
+    struct
+    {
+      byte command;
+      byte reserved0;
+      byte reserved1;
+      
+      RKF_Position robot[8];
+    };
+    
+  };
 };
 
