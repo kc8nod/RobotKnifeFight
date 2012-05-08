@@ -29,19 +29,19 @@ def keypress():
 
 
 def go_forward():
-    return "data 2 180 180"
+    return "data 7 255 255"
 
 def go_backward():
-    return "data 2 0 0"
+    return "data 7 0 0"
 
 def turn_left():
-    return "data 2 0 180"
+    return "data 7 0 255"
 
 def turn_right():
-    return "data 2 180 0"
+    return "data 7 255 0"
 
 def stop():
-    return "data 2 90 90"
+    return "data 7 127 127"
 
 def quit():
     exit()
@@ -52,7 +52,7 @@ key_handlers = {
     'a' : turn_left,
     's' : stop,
     'd' : turn_right,
-    'x' : stop,
+    'x' : go_backward,
     'q' : quit
 }
 
