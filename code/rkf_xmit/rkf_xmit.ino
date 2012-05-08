@@ -51,9 +51,12 @@ void loop()
     // transmit the packet
     vw_wait_tx();
     vw_send((uint8_t*) &send_pkt_buffer, send_data_len);
+    // transmit the packet
+    vw_wait_tx();
+    vw_send((uint8_t*) &send_pkt_buffer, send_data_len);
 
-    Serial.print("tx ");
-    Serial.println(tx_msg_count++);
+    //Serial.print("tx ");
+    //Serial.println(tx_msg_count++);
   }
   
   digitalWrite(LED_PIN, vx_tx_active() ? HIGH : LOW);
@@ -102,6 +105,8 @@ void send_raw_data()
    if(arg == NULL) break;
    
    *ptr = byte(atoi(arg));
+   ptr++;
+   
    send_data_len++;
  }
  
@@ -128,6 +133,7 @@ void start_tx()
   vw_set_tx_pin(TX_PIN);
   vw_setup(baud_rate);
 
+  send_data_len = sizeof(send_pkt_buffer);
   tx_enabled_flag = 1;
   
   Serial.print("start xmit: period=");

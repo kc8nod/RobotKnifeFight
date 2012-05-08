@@ -1,12 +1,14 @@
 import sys
 import serial
+import time
 
 port_name = sys.argv[1]
 baud_str = sys.argv[2]
 
 
 port = serial.Serial(port_name, int(baud_str))
-port.write('start 500 2400\n')
+time.sleep(3)
+port.write("start 500 2400\n")
 
 
 def keypress(): 
@@ -27,19 +29,19 @@ def keypress():
 
 
 def go_forward():
-    return "DATA 2 180 180"
+    return "data 2 180 180"
 
 def go_backward():
-    return "DATA 2 0 0"
+    return "data 2 0 0"
 
 def turn_left():
-    return "DATA 2 0 180"
+    return "data 2 0 180"
 
 def turn_right():
-    return "DATA 2 180 0"
+    return "data 2 180 0"
 
 def stop():
-    return "DATA 2 90 90"
+    return "data 2 90 90"
 
 def quit():
     exit()
