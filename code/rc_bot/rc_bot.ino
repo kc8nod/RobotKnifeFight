@@ -18,6 +18,8 @@ int speed_R = RIGHT_STOP;
 
 RKF_Radio radio;
 
+extern "C" { uint8_t vw_rx_active; };
+
 void setup(){
   LeftDrive.attach(LEFT_DRIVE_PIN);
   RightDrive.attach(RIGHT_DRIVE_PIN);
@@ -71,7 +73,11 @@ void loop()
   
   LeftDrive.write(speed_L);
   RightDrive.write(speed_R);
+ 
+  digitalWrite(STATUS_LED_PIN, vw_rx_active);
   
+  delay(100);
+    
 }
 
 
