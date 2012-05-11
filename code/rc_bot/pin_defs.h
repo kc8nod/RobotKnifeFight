@@ -7,8 +7,8 @@
 #define RGB_LED_BLUE_PIN      6
 //pin 7 not currently used
 //pin 8 not currently used
-#define RIGHT_DRIVE_PIN       9
-#define LEFT_DRIVE_PIN       10
+#define RIGHT_DRIVE_PIN       8
+#define LEFT_DRIVE_PIN        9
 #define SENSOR_SERVO_PIN     11
 //pin 12 not currently used
 #define STATUS_LED_PIN       13

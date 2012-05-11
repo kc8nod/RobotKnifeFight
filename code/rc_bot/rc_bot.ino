@@ -5,13 +5,16 @@
 
 ServoTimer2 LeftDrive, RightDrive;
 
-#define LEFT_FWD 1000
-#define LEFT_REV 2000
-#define LEFT_STOP ((LEFT_FWD + LEFT_REV)/2)
+#define LEFT_REV 1000
+#define LEFT_FWD 2040
+#define LEFT_STOP 1520
 
 #define RIGHT_FWD 1000
-#define RIGHT_REV 2000
-#define RIGHT_STOP ((RIGHT_FWD + RIGHT_REV)/2)
+#define RIGHT_REV 2040
+#define RIGHT_STOP 1520
+
+int speed_L = LEFT_STOP;
+int speed_R = RIGHT_STOP;
 
 RKF_Radio radio;
 
@@ -27,6 +30,7 @@ void setup(){
   
   LeftDrive.write(LEFT_STOP);
   RightDrive.write(RIGHT_STOP);
+  
   radio.start();
   
   Serial.println("Reset");
@@ -35,19 +39,12 @@ void setup(){
 
 void loop()
 {
-  int speed_L, speed_R;
   int idx;
 
   if(radio.recv())
   {
     Serial.print("rx:");
-    for(idx=0; idx<8; idx++)
-    {
-      Serial.print(" ");
-      Serial.print(radio.packet.data[idx], HEX);
-    }
-    Serial.println("");
-    Serial.println(radio.packet.message, HEX);
+    Serial.println(radio);
     
     switch(radio.packet.message)
     {
@@ -56,7 +53,7 @@ void loop()
                     0, 255, LEFT_REV, LEFT_FWD);
 
         speed_R = map(radio.packet.data[2],
-                    0, 255, LEFT_REV, LEFT_FWD);
+                    0, 255, RIGHT_REV, RIGHT_FWD);
                     
         Serial.print("speed_L = ");
         Serial.println(speed_L);

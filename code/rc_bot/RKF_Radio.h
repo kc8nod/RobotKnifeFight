@@ -18,7 +18,7 @@ class RKF_Position
 };
 
 
-class RKF_Packet : public Printable
+class RKF_Packet 
 {
   public:
   
@@ -32,15 +32,12 @@ class RKF_Packet : public Printable
       byte reserved0;
       byte reserved1;
     
-      RKF_Position robot[8]; 
-    };
-    
+      RKF_Position robot[8];
+    }; 
   };
- 
-  size_t printTo(Print&) const;
 };
 
-class RKF_Radio
+class RKF_Radio : public Printable
 {
   public:
   
@@ -50,4 +47,5 @@ class RKF_Radio
   int start(int);
   int start(int, int);
   int recv();
+  size_t printTo(Print&) const;
 };

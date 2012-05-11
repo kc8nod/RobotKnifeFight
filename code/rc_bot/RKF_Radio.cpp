@@ -55,34 +55,34 @@ int RKF_Radio::recv()
 }
 
 
-size_t RKF_Packet::printTo(Print& prn) const
+size_t RKF_Radio::printTo(Print& prn) const
 {
   int idx;
   
   prn.print("message: ");
-  prn.println(this->message, HEX);
+  prn.println(this->packet.message, HEX);
   
-  switch(this->message)
+  switch(this->packet.message)
   {
     case 1:
       for (idx = 0; idx < 8; idx++)
       {
         prn.print(idx);
         prn.print(": ");
-        prn.print(this->robot[idx].x);
+        prn.print(this->packet.robot[idx].x);
         prn.print(", ");
-        prn.print(this->robot[idx].y);
+        prn.print(this->packet.robot[idx].y);
         prn.print(", ");
-        prn.print(this->robot[idx].heading);
+        prn.print(this->packet.robot[idx].heading);
         prn.print(", ");
-        prn.println(this->robot[idx].valid);
+        prn.println(this->packet.robot[idx].valid);
       }
       break;
       
     default:
       for(idx=0; idx<sizeof(RKF_Packet); idx++)
       {
-        prn.print(this->data[idx], HEX);
+        prn.print(((byte*)this)[idx], HEX);
         prn.print(" ");
       }
       break;

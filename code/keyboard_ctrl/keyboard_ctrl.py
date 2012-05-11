@@ -44,6 +44,7 @@ def stop():
     return "data 7 127 127"
 
 def quit():
+    port.write('reset\n')
     exit()
 
 
