@@ -1,56 +1,5 @@
 
+code/arena/        python script that interfaces to the camera and sends commands to the transmitter
+code/rkf_xmit/     arduino code for the transmitter
 
-Transmitter:
-
-The transmitter is attached to the host PC via USB. Commmands are sent by opening the appropriate
-serial port and writing newline-terminated strings.
-The arduino code on the transmitter repeatedly sends a packet held in memory.
-The structure of the packet is defined in rkf_packet.h
-
-
-
-Transmitter command summary:
-
-    start <xmit_period> <baudrate>
-    pos <robot_num> <x> <y> <heading> <valid>
-    reset
-    data <byte0> <byte1> ... <byte26>
-
-
-
-Transmitter commands:
-
-
-start <xmit_period> <baudrate>
-
-    On reset, the transmitter sends nothing until the start command is sent.
-    Once the start command is sent, the transmitter continually sends the packet in memory.
-    You may optionally specify the transmit repeat period in milliseconds (default 500)
-    and the RF baud rate (default 2400).
-    
-    example: start 100 2400
-
-
-
-pos <robot_num> <x> <y> <heading> <valid>
-
-    The packet consists of a some header bytes and an array of 8 robot position structures.
-    Use the "pos" command to modify one of the robot positions.
-    
-        parameters: 
-    
-            robot_num  index of the position structure to modify.  0 to 7
-            x          the x coordinate. 0 to 255
-            y          the y coordinate. 0 to 255
-            heading    the direction the bot is facing. 0 to 15
-            valid      flag indicating whether position report n contains valid data. 0 or 1
-
-
-
-
-
-
-reset
-
-    The reset command makes the transmitter stop transmitting and clears the packet buffer.
-
+3d_model/          google sketchup design files

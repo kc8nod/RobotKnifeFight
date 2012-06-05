@@ -25,8 +25,7 @@ try:
     while 1:
         tracking.update()
         for obj in tracking.objects():
-            session_id = obj.sessionid
-            # TODO: Need to somehow match this to robot id
+            id = obj.id
 
             x = int(obj.xpos * ARENA_SIZE_UNITS[0])
             # y-axis is inverted, to match Cartesian coordinates
