@@ -1,12 +1,10 @@
 #!/usr/bin/python
 import sys, serial, time
+import cmath
 import tuio
+import arena
 
-ARENA_SIZE_INCHES = (72.0, 48.0)
-ARENA_SIZE_UNITS = (ARENA_SIZE_INCHES[0]*2.0, ARENA_SIZE_INCHES[1]*2.0)
 
-NUM_HEADINGS = 16.0
-DEG_PER_HEADING = 360.0 / NUM_HEADINGS
 
 if len(sys.argv) < 3:
     print 'Usage:', sys.argv[0], 'PORT', 'BAUDRATE'
@@ -25,20 +23,16 @@ try:
     while 1:
         tracking.update()
         for obj in tracking.objects():
-            id = obj.id
+            
+            camera_pos = arena.CameraPosition(obj)
+            arena_pos = arena.ArenaPosition()
+            
+            arena_pos.set_camera(camera_pos)
 
-            x = int(obj.xpos * ARENA_SIZE_UNITS[0])
-            # y-axis is inverted, to match Cartesian coordinates
-            y = int((1.0 - obj.ypos) * ARENA_SIZE_UNITS[1])
+            cmd_str = arena_pos.cmd_str()
 
-            heading = int((obj.angle + DEG_PER_HEADING/2.0) / DEG_PER_HEADING)
-            if heading >= 16:
-                heading -= 16
-
-            pos = 'pos ' + str(session_id) + ' ' + str(x) + ' ' + str(y) + ' ' + str(heading) + ' 1'
-
-            print pos
-            port.write(pos + '\n')
+            print cmd_str
+            port.write(cmd_str + '\n')
             time.sleep(0.01)
         time.sleep(0.1)
 
