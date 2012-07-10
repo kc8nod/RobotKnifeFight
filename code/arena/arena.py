@@ -27,7 +27,7 @@ class CameraPosition(Position):
     camera_y_max = 1.0
     
 
-    def __init__(self, src)
+    def __init__(self, src):
         self.sessionid  = src.sessionid
         self.id         = src.id
         self.xpos       = src.xpos * camera_x_max
