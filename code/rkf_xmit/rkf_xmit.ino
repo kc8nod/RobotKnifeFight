@@ -8,12 +8,12 @@
 uint16_t tx_msg_count;
 SerialCommand sCmd;     // The SerialCommand object
 unsigned char tx_enabled_flag = 0;
-long xmit_time = 0;
+unsigned long xmit_time = 0;
 RKF_Packet send_pkt_buffer;
 int send_data_len;
 
-int xmit_period = 500;
-int baud_rate   = 2400;
+int xmit_period = 100;
+int baud_rate   = 4800;
 
 void (*softReset) (void) = 0; // soft reset function
 
@@ -33,7 +33,8 @@ void setup() {
   sCmd.addCommand("reset", softReset);
   sCmd.addCommand("data",  send_raw_data);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't defined
-  Serial.println("Ready");
+  Serial.println("");
+  Serial.println("rkf_xmit: Ready");
 }
 
 
@@ -43,8 +44,7 @@ void loop()
   
   sCmd.readSerial();     // process serial commands
   
-  if(millis() >= xmit_time
-  && tx_enabled_flag)
+  if(millis() >= xmit_time && tx_enabled_flag)
   {
     xmit_time = millis() + xmit_period;
     
@@ -55,8 +55,9 @@ void loop()
     vw_wait_tx();
     vw_send((uint8_t*) &send_pkt_buffer, send_data_len);
 
-    //Serial.print("tx ");
-    //Serial.println(tx_msg_count++);
+    Serial.print("tx ");
+    Serial.println(tx_msg_count++);
+    printPacket(send_pkt_buffer);
   }
   
   digitalWrite(LED_PIN, vx_tx_active() ? HIGH : LOW);
@@ -117,7 +118,6 @@ void send_raw_data()
 void start_tx()
 {
   char * arg;
-  
   arg = sCmd.next();
   if(arg != NULL)
   {

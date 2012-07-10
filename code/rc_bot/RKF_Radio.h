@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Print.h>
 
-#define DEFAULT_BAUD_RATE  2400
+#define DEFAULT_BAUD_RATE  4800
 #define DEFAULT_RX_PIN       11
 
 class RKF_Position
