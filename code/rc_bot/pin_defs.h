@@ -11,7 +11,7 @@
 //pin 10 not currently used
 #define RADIO_RX_PIN     11
 //pin 12 not currently used
-#define STATUS_LED_PIN       13
+#define STATUS_LED_PIN 13
 
 #define RADIO_RSSI_PIN A0
 //A1 not currently used
