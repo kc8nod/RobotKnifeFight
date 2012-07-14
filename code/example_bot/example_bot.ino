@@ -6,13 +6,14 @@
 
 ServoTimer2 LeftDrive, RightDrive;
 #define LEFT_FWD 2000
-#define LEFT_STOP 1466
+#define LEFT_STOP 1467
 #define LEFT_REV 1000
 #define RIGHT_FWD 1000
-#define RIGHT_STOP 1466
+#define RIGHT_STOP 1458
 #define RIGHT_REV 2000
 unsigned int speed_L = LEFT_STOP;
 unsigned int speed_R = RIGHT_STOP;
+unsigned long timeLastServoUp = 0;
 
 RKF_Radio radio;
 unsigned long timeLastMessage = 0;
@@ -30,8 +31,10 @@ void setup(){
   pinMode(DEFAULT_RX_PIN, INPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
   
-  LeftDrive.write(LEFT_STOP);
-  RightDrive.write(RIGHT_STOP);
+  speed_L = LEFT_STOP;
+  speed_R = RIGHT_STOP;
+  LeftDrive.write(speed_L);
+  RightDrive.write(speed_R);
   
   radio.start();
   
@@ -45,7 +48,7 @@ void setup(){
   
   serialInputString.reserve(16);
   Serial.begin(57600);
-  Serial.println("rc_bot: Reset");
+  Serial.println("example_bot: Reset");
 }
 
 
@@ -75,25 +78,58 @@ void loop(){
   while (Serial.available()) {  //check for any debug command
     char inChar = (char)Serial.read(); 
     serialInputString += inChar;  // add it to the inputString
-    if (inChar == '\n') {
+    if (inChar == '\n' && serialInputString.length() > 1) {
       serialInputString.trim();
       serialInputString.toUpperCase();
       Serial.println(serialInputString);
-      if(serialInputString.startsWith("SL")){
-        serialInputString = serialInputString.substring(2);
-        Serial.println(serialInputString);
-        byte len = serialInputString.length();
-        //#TODO coverting a String to an int???
-        //char *buf[len];
-        //serialInputString.toCharArray(buf, len);
+      
+      //Check if serialInputString is a command
+      if(serialInputString.startsWith("SL")){ //set Left Servo speed/direction
+        speed_L = getIntFromCommand(serialInputString);
+        
+      }else if(serialInputString.startsWith("SR")){ //set Right Servo speed/direction
+        speed_R = getIntFromCommand(serialInputString);
+        
+      }else if(serialInputString.startsWith("F")){ //Go Forward
+        speed_L = LEFT_FWD;
+        speed_R = RIGHT_FWD;
+        
+      }else if(serialInputString.startsWith("B")){ //Go Backward
+        speed_L = LEFT_REV;
+        speed_R = RIGHT_REV;
+        
+      }else if(serialInputString.startsWith("TL")){ //Turn Left
+        speed_L = LEFT_REV;
+        speed_R = RIGHT_FWD;
+        
+      }else if(serialInputString.startsWith("TR")){ //Turn Right
+        speed_L = LEFT_FWD;
+        speed_R = RIGHT_REV;
+        
+      }else if(serialInputString.startsWith("?")){ //"What are you thinking?"
+        //"Robot Stuff"
+        Serial.print("L:");
+        Serial.print(speed_L);
+        Serial.print("\tR:");
+        Serial.println(speed_R);
       }
+      
       serialInputString = "";  // clear the string
     } 
   } 
   
-  LeftDrive.write(speed_L);
-  RightDrive.write(speed_R);
-  //delay(1);    
+  if(now - timeLastServoUp > 15){
+    LeftDrive.write(speed_L);
+    RightDrive.write(speed_R);
+    timeLastServoUp = now;
+  }  
+}
+
+unsigned int getIntFromCommand(String strInput){
+  strInput = strInput.substring(2);
+  char buf[16];
+  strInput.toCharArray(buf, 16);
+  return atoi(buf);
 }
 
 
