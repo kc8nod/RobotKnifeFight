@@ -25,16 +25,18 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);      // Configure the onboard LED for output
   digitalWrite(LED_PIN, LOW);    // default to LED off
 
-  Serial.begin(57600);
+  Serial.begin(115200);
   
   // Setup callbacks for SerialCommand commands
   sCmd.addCommand("pos",   set_position);  // send position report for a robot
   sCmd.addCommand("start", start_tx);      // start transmitting
-  sCmd.addCommand("reset", softReset);
+  sCmd.addCommand("stop", stop_tx);      // start transmitting
+  sCmd.addCommand("reset", resetXmit);
   sCmd.addCommand("data",  send_raw_data);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't defined
-  Serial.println("");
+
   Serial.println("rkf_xmit: Ready");
+  printHelp();
 }
 
 
@@ -52,7 +54,7 @@ void loop()
     vw_wait_tx();
     vw_send((uint8_t*) &send_pkt_buffer, send_data_len);
 
-    Serial.print("tx ");
+    Serial.print("\n\rtx ");
     Serial.println(tx_msg_count++);
     printPacket(send_pkt_buffer);
   }
@@ -61,6 +63,12 @@ void loop()
 }
 
 
+void resetXmit(){
+  Serial.println("RESET");
+  Serial.println("");
+  delay(500);
+  softReset();
+}
 
 void set_position()
 {
@@ -87,27 +95,28 @@ void set_position()
   
   send_data_len = sizeof(send_pkt_buffer);
 
+  Serial.println("SET POSITION");
   printPacket(send_pkt_buffer);
   
 }
 
 void send_raw_data()
 {
- char* arg;
- uint8_t* ptr = (uint8_t*)&send_pkt_buffer;
- send_data_len = 0;
-
- while(1)
- {
-   arg = sCmd.next();
-   if(arg == NULL) break;
+  Serial.println("SEND RAW");
+  char* arg;
+  uint8_t* ptr = (uint8_t*)&send_pkt_buffer;
+  send_data_len = 0;
+  
+  while(1)
+  {
+    arg = sCmd.next();
+    if(arg == NULL) break;
    
-   *ptr = byte(atoi(arg));
-   ptr++;
+    *ptr = byte(atoi(arg));
+    ptr++;
    
-   send_data_len++;
- }
- 
+    send_data_len++;
+  }
 }
 
 
@@ -133,7 +142,7 @@ void start_tx()
   send_data_len = sizeof(send_pkt_buffer);
   tx_enabled_flag = 1;
   
-  Serial.print("start xmit: period=");
+  Serial.print("START xmit: period=");
   Serial.print(xmit_period);
   Serial.print("ms baud=");
   Serial.print(baud_rate);
@@ -143,11 +152,16 @@ void start_tx()
 
 }
 
+void stop_tx(){
+  tx_enabled_flag = 0;
+  Serial.println("STOP");
+}
 
 
 // This gets set as the default handler, and gets called when no other command matches.
 void unrecognized(const char *command) {
-  Serial.println("wat?");
+  Serial.print("INVALID COMMAND: ");
+  Serial.println(command);
 }
 
 
@@ -155,7 +169,7 @@ void printPacket(RKF_Packet &pkt)
 {
   int idx;
   
-  Serial.print("command: ");
+  Serial.print("command type: ");
   Serial.println(pkt.command, HEX);
   
   for (idx = 0; idx < 8; idx++)
@@ -170,4 +184,20 @@ void printPacket(RKF_Packet &pkt)
     Serial.print(", ");
     Serial.println(pkt.robot[idx].valid);
   }
+}
+
+
+/*
+  printHelp
+output the help menu to the Serial port
+------------------------------------------------------------------------------*/
+void printHelp(){
+  Serial.println("Help Menu:");
+  Serial.println("----------------");
+  Serial.println("start [XMIT_PERIOD] [BAUD_RATE]");
+  Serial.println("stop");
+  Serial.println("pos ROBOT_NUM X Y HEADING VALID");
+  Serial.println("reset");
+  Serial.println("data BYTE0 [BYTE1] ... [BYTE26]");
+  Serial.println("----------------");
 }
