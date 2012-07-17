@@ -20,7 +20,9 @@ class Position(object):
         return cmath.polar(d - s)
 
     def __str__(self):
-        return "%s x=%.2f y=%.2f a=%.2f (%3d)" % (self.__class__.__name__, self.xpos, self.ypos, self.angle, math.degrees(self.angle))
+        return "%s x=%.2f y=%.2f a=%.2frad (%3ddeg)" % (self.__class__.__name__, self.xpos, self.ypos, self.angle, math.degrees(self.angle))
+        
+        
         
 class CameraPosition(Position):
 
@@ -58,15 +60,12 @@ class ArenaPosition(Position):
     
         self.id = camera_pos.id
     
-        self.xpos = (  camera_pos.xpos * cos(self.angle_offset) * self.scale 
-                     + camera_pos.ypos * sin(self.angle_offset) * self.scale
-                     + self.x_offset)
+        self.xpos = ( (camera_pos.xpos - self.x_offset) * cos(self.angle_offset) * self.scale 
+                     +(camera_pos.ypos - self.y_offset) * sin(self.angle_offset) * self.scale )
                     
-        self.ypos = (  camera_pos.ypos * cos(self.angle_offset) * self.scale
-                     - camera_pos.xpos * sin(self.angle_offset) * self.scale
-                     + self.y_offset)
-                    
-        self.angle = camera_pos.angle + self.angle_offset 
+        self.ypos = (-(camera_pos.xpos - self.x_offset) * sin(self.angle_offset) * self.scale
+                     +(camera_pos.ypos - self.y_offset) * cos(self.angle_offset) * self.scale )
+        self.angle = camera_pos.angle - self.angle_offset 
 
         
     @classmethod
@@ -74,21 +73,13 @@ class ArenaPosition(Position):
         cam_dist, cam_ang = camera_pos1.distance_angle(camera_pos2)
         fld_dist, fld_ang = field_pos1.distance_angle(field_pos2)
         
-        print camera_pos1
-        print camera_pos2
-        print "dist: %.3f angle: %.3f (%3d)" %(cam_dist, cam_ang, math.degrees(cam_ang))
-        
-        print field_pos1
-        print field_pos2
-        print "dist: %.3f angle: %.3f (%3d)" %(fld_dist, fld_ang, math.degrees(fld_ang))
-        
-        cls.angle_offset = fld_ang - cam_ang
+        cls.angle_offset = cam_ang - fld_ang
         
         cls.scale = fld_dist / cam_dist
     
-        cls.x_offset = field_pos1.xpos - camera_pos1.xpos * cos(cls.angle_offset) * cls.scale - camera_pos1.ypos * sin(cls.angle_offset) * cls.scale
+        cls.x_offset = camera_pos1.xpos + (field_pos1.xpos * cos(cls.angle_offset) - field_pos1.ypos * sin(cls.angle_offset)) / cls.scale
 
-        cls.y_offset = field_pos1.ypos - camera_pos1.ypos * cos(cls.angle_offset) * cls.scale - camera_pos1.xpos * sin(cls.angle_offset) * cls.scale
+        cls.y_offset = camera_pos1.ypos + (field_pos1.ypos * cos(cls.angle_offset) + field_pos1.xpos * sin(cls.angle_offset)) / cls.scale
 
 
 
@@ -98,7 +89,9 @@ def write_config(filename='arena_config.json'):
                 'scale'        : ArenaPosition.scale,
                 'x_offset'     : ArenaPosition.x_offset,
                 'y_offset'     : ArenaPosition.y_offset,
-                'angle_offset' : ArenaPosition.angle_offset
+                'angle_offset' : ArenaPosition.angle_offset,
+                'camera_x_max' : CameraPosition.camera_x_max,
+                'camera_y_max' : CameraPosition.camera_y_max,
              }
 
     with open(filename, 'w') as fh:
@@ -114,71 +107,90 @@ def read_config(filename='arena_config.json'):
         ArenaPosition.x_offset     = config['x_offset']
         ArenaPosition.y_offset     = config['y_offset']
         ArenaPosition.angle_offset = config['angle_offset']
+        CameraPosition.camera_x_max = config['camera_x_max']
+        CameraPosition.camera_y_max = config['camera_y_max']
         
 
 
 if __name__ == '__main__':
 
-    c1 = CameraPosition(1,1)
-    a1 = ArenaPosition(0, 0)
-    
-    c2 = CameraPosition(3,3)
-    a2 = ArenaPosition(2,2)
-    
-    ArenaPosition.calibrate(c1, a1, c2, a2)
-    
-    c3 = CameraPosition(2,2)
-    a3 = ArenaPosition()
-    
-    a3.set_camera(c3)
-    
-    assert a3.xpos == 1
-    assert a3.ypos == 1
+    def assert_f_eq(a,b):
+        delta = a-b
+        if abs(delta) > 1.0e-9:
+            raise AssertionError, "%f != %f  difference: %e" % (a, b, delta)
+        
 
-    print
-    
-    c1 = CameraPosition(1,1)
-    a1 = ArenaPosition(0, 0)
-    
-    c2 = CameraPosition(3,3)
-    a2 = ArenaPosition(200,200)
-    
-    ArenaPosition.calibrate(c1, a1, c2, a2)
-    
-    c3 = CameraPosition(2,2)
-    a3 = ArenaPosition()
-    
-    a3.set_camera(c3)
-    
-    assert a3.xpos == 100
-    assert a3.ypos == 100
-
-    print    
-    
-    c1 = CameraPosition(1, 1)
-    a1 =  ArenaPosition(2, 0)
-    
-    c2 = CameraPosition(3, 3)
-    a2 =  ArenaPosition(0, 2)
-    
-    ArenaPosition.calibrate(c1, a1, c2, a2)
-    
-    print "ArenaPosition.scale        %.2f" % ArenaPosition.scale       
-    print "ArenaPosition.x_offset     %.2f" % ArenaPosition.x_offset    
-    print "ArenaPosition.y_offset     %.2f" % ArenaPosition.y_offset    
-    print "ArenaPosition.angle_offset %.2f" % math.degrees(ArenaPosition.angle_offset)
-    assert ArenaPosition.angle_offset == math.radians(90)
-    
-    c3 = CameraPosition(2,2)
-    a3 = ArenaPosition()
-    
-    a3.set_camera(c3)
-    
-    print a3
-    assert math.degrees(a3.angle) == 90             
-    assert a3.ypos == 1
-    assert a3.xpos == 1
+    def test(c1, a1, c2, a2, c3, a3_expected):
+        print "calibrate:"
+        print "c1: " + str(c1)
+        print "c2: " + str(c2)
+        #print "dist: %.3f angle: %.3f (%3d)" %(cam_dist, cam_ang, math.degrees(cam_ang))
+        
+        print "a1: " + str(a1)
+        print "a2: " + str(a1)
+        #print "dist: %.3f angle: %.3f (%3d)" %(fld_dist, fld_ang, math.degrees(fld_ang))
+        
+        ArenaPosition.calibrate(c1, a1, c2, a2)
+        
+        print "ArenaPosition.scale        %.2f" % ArenaPosition.scale       
+        print "ArenaPosition.x_offset     %.2f" % ArenaPosition.x_offset    
+        print "ArenaPosition.y_offset     %.2f" % ArenaPosition.y_offset    
+        print "ArenaPosition.angle_offset %.2f" % math.degrees(ArenaPosition.angle_offset)
+        
+        a3 = ArenaPosition()
+        a3.set_camera(c3)
+        
+        print "test:"
+        print c3
+        print a3
+        assert_f_eq(a3.angle, a3_expected.angle)              
+        assert_f_eq(a3.ypos,  a3_expected.ypos)
+        assert_f_eq(a3.xpos,  a3_expected.xpos)
     
 
+    print "\n\ncase 1"
+    
+    test(CameraPosition(1,1),  ArenaPosition(0,0),
+         CameraPosition(3, 3), ArenaPosition(2, 2),
+         CameraPosition(2, 2), ArenaPosition(1, 1, 0)
+        )
+
+    print "\n\ncase 2"
+    
+    test(CameraPosition(1,1),     ArenaPosition(0,0),
+         CameraPosition(3, 3),    ArenaPosition(200, 200),
+         CameraPosition(2, 2),    ArenaPosition(100, 100, 0)
+        )
+
+    print "\n\ncase 3"
+    
+    test(CameraPosition(0,0),     ArenaPosition(0,0),
+         CameraPosition(4, 4),    ArenaPosition(2, 2),
+         CameraPosition(2, 2),    ArenaPosition(1, 1, 0)
+        )
+
+
+    print "\n\ncase 4"
+    
+    test(CameraPosition(0,0),     ArenaPosition(0,0),
+         CameraPosition(2, 0),    ArenaPosition(0, 2),
+         CameraPosition(1,-1),    ArenaPosition(1, 1, math.radians(90))
+        )
+
+    print "\n\ncase 5"
+
+    test(CameraPosition(1, 3),    ArenaPosition(0, 0),
+         CameraPosition(3, 1),    ArenaPosition(2, 2),
+         CameraPosition(2, 2),    ArenaPosition(1, 1, math.radians(90))
+        )
+    
+    print "\n\ncase 6"
+
+    test(CameraPosition(1, 1),    ArenaPosition(0, 0),
+         CameraPosition(1, 3),    ArenaPosition(2, 2),
+         CameraPosition(1, 2, math.radians(50)),    ArenaPosition(1, 1, math.radians(5))
+        )
+    
+    
     print "ok!"
     

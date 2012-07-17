@@ -16,6 +16,7 @@ if __name__ == '__main__':
     
   
     try:
+        arena.read_config()
 
         print "Put exactly one glyph in the camera's field of view."
 
@@ -68,11 +69,6 @@ if __name__ == '__main__':
         
         print "arena_corner2: %s" % str(arena_corner2)
         print "camera_pos2: %s" % str(camera_pos2)
-        
-        print "scale: %s" % arena.ArenaPosition.scale
-        print "x_offset: %s" % arena.ArenaPosition.x_offset
-        print "y_offset: %s" % arena.ArenaPosition.y_offset
-        print "angle_offset: %s" % arena.ArenaPosition.angle_offset
         
         arena.ArenaPosition.calibrate(camera_pos1, arena_corner1,
                                       camera_pos2, arena_corner2)
