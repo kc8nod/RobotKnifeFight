@@ -4,7 +4,7 @@ import cmath
 import tuio
 import arena
 
-
+arena.read_config()
 
 if len(sys.argv) < 3:
     print 'Usage:', sys.argv[0], 'PORT', 'BAUDRATE'
