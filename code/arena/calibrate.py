@@ -14,9 +14,13 @@ if __name__ == '__main__':
     arena_corner1 = arena.ArenaPosition(0.0, 0.0, 0.0)
     arena_corner2 = arena.ArenaPosition(96.0, 144.0, 0.0)
     
-  
+
     try:
         arena.read_config()
+    except:
+        print "no config file found. writing a new one"
+  
+    try:
 
         print "Put exactly one glyph in the camera's field of view."
 
@@ -31,7 +35,8 @@ if __name__ == '__main__':
         raw_input("then press return to continue.")
      
         tracking.update()
-        camera_pos1 = arena.CameraPosition(tracking.objects().next())
+        camera_pos1 = arena.CameraPosition()
+        camera_pos1.set_tuio(tracking.objects().next())
         
         print "arena_corner1: %s" % str(arena_corner1)
         print "camera_pos1: %s" % str(camera_pos1)
@@ -51,7 +56,8 @@ if __name__ == '__main__':
                 break
         
         tracking.update()
-        camera_pos2 = arena.CameraPosition(tracking.objects().next())
+        camera_pos2 = arena.CameraPosition()
+        camera_pos2.set_tuio(tracking.objects().next())
         
         print
         print "enter the x,y coordinates of the opposite corner"

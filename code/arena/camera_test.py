@@ -12,7 +12,8 @@ try:
         tracking.update()
         for obj in tracking.objects():
             
-            camera_pos = arena.CameraPosition(obj)
+            camera_pos = arena.CameraPosition()
+            camera_pos.set_tuio(obj)
             arena_pos = arena.ArenaPosition()
             
             arena_pos.set_camera(camera_pos)
