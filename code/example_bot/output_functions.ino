@@ -24,7 +24,8 @@ void outputStatus(){
 output the help menu to the Serial port
 ------------------------------------------------------------------------------*/
 void outputHelp(){
-  Serial.println("Help Menu:\n----------------");
+  Serial.println("Help Menu:");
+  Serial.println("----------------");
   Serial.println("H\tDisplay this Help Menu");
   Serial.println("S\tStop");
   Serial.println("F[#]\tGo Forward for # ms or forever if not set");
