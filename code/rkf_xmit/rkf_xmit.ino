@@ -6,13 +6,15 @@
 #define TX_PIN  12
 
 uint16_t tx_msg_count;
+
 SerialCommand sCmd;     // The SerialCommand object
+
 unsigned char tx_enabled_flag = 0;
 unsigned long xmit_time = 0;
 RKF_Packet send_pkt_buffer;
 int send_data_len;
 
-int xmit_period = 250;
+int xmit_period = 100;
 int baud_rate   = 4800;
 
 void (*softReset) (void) = 0; // soft reset function

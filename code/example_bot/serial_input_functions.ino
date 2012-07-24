@@ -19,7 +19,7 @@ void processSerialInput(){
   while (Serial.available()) {  //check for any debug command
     char inChar = (char)Serial.read(); 
     serialInputString += inChar;  // add it to the inputString
-    if (inChar == '\n' && serialInputString.length() > 1) {
+    if ((inChar=='\n' || inChar=='\r') && serialInputString.length() > 1) {
       serialInputString.trim();
       serialInputString.toUpperCase();
       Serial.println(serialInputString);
