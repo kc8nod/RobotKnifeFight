@@ -12,7 +12,7 @@ if __name__ == '__main__':
     tracking = tuio.Tracking()
   
     arena_corner1 = arena.ArenaPosition(0.0, 0.0, 0.0)
-    arena_corner2 = arena.ArenaPosition(96.0, 144.0, 0.0)
+    arena_corner2 = arena.ArenaPosition(46.5, 70.5, 0.0)
     
 
     try:
