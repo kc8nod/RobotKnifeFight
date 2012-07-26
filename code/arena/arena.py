@@ -35,7 +35,7 @@ class CameraPosition(Position):
         self.id         = src.id
         self.xpos       = src.xpos * self.camera_x_max
         self.ypos       = (1.0 - src.ypos) * self.camera_y_max
-        self.angle      = radians(-src.angle )
+        self.angle      = radians(src.angle )
         self.xmot       = src.xmot * self.camera_x_max
         self.ymot       = (1.0 - src.ymot) * self.camera_y_max 
         self.rot_vector = -src.rot_vector 
@@ -52,17 +52,16 @@ class ArenaPosition(Position):
     y_offset = 0
     angle_offset = 0
 
-    def command_str():
-        heading = int( self.angle / (2 * pi()) * 16)
-        "pos %d %d %d %d" * (self.id, self.xpos, self.ypos, heading)
+    def command_str(self):
+        heading = int( self.angle / (2 * math.pi) * 16)
+        return "pos %d %d %d %d" % (self.id, self.xpos, self.ypos, heading)
 
     def set_camera(self, camera_pos):
     
         self.id = camera_pos.id
-    
-        self.xpos = ( (camera_pos.xpos - self.x_offset) * cos(self.angle_offset) * self.scale 
-                     +(camera_pos.ypos - self.y_offset) * sin(self.angle_offset) * self.scale )
-                    
+
+        self.xpos = ((camera_pos.xpos-self.x_offset)*cos(self.angle_offset)*self.scale+(camera_pos.ypos-self.y_offset)*sin(self.angle_offset)*self.scale)
+                
         self.ypos = (-(camera_pos.xpos - self.x_offset) * sin(self.angle_offset) * self.scale
                      +(camera_pos.ypos - self.y_offset) * cos(self.angle_offset) * self.scale )
         self.angle = camera_pos.angle - self.angle_offset 

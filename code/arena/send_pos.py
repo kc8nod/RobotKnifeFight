@@ -23,13 +23,14 @@ try:
     while 1:
         tracking.update()
         for obj in tracking.objects():
-            
-            camera_pos = arena.CameraPosition(obj)
+            #print obj
+            camera_pos = arena.CameraPosition()
+            camera_pos.set_tuio(obj)
             arena_pos = arena.ArenaPosition()
             
             arena_pos.set_camera(camera_pos)
 
-            cmd_str = arena_pos.cmd_str()
+            cmd_str = arena_pos.command_str()
 
             print cmd_str
             port.write(cmd_str + '\n')
