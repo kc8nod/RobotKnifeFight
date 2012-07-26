@@ -3,6 +3,11 @@ import math
 import json
 from math import sin, cos, radians
 
+# BOT_ID is the index of the first dimension.
+# a robot's main fiducial id is element 0 .
+# the robot's death fiducial id is element 1 .
+# the robot's alive status is elemt 2. (0=dead, 1=alive)
+robot_ids = [[0,1,1],[2,3,1],[4,5,1],[6,7,1]]
 
 class Position(object):
     def __init__(self, x=0, y=0, a=0, id=None):
@@ -29,7 +34,6 @@ class CameraPosition(Position):
     camera_x_max = 1.0
     camera_y_max = 1.0
 
-
     def set_tuio(self, src):
         self.sessionid  = src.sessionid
         self.id         = src.id
@@ -51,19 +55,27 @@ class ArenaPosition(Position):
     x_offset = 0
     y_offset = 0
     angle_offset = 0
+    alive_status = 0
 
     def command_str(self):
         heading = int( self.angle / (2 * math.pi) * 16)
-        return "pos %d %d %d %d" % (self.id, self.xpos, self.ypos, heading)
+        return "pos %d %d %d %d %d" % (self.id, self.xpos, self.ypos, heading, self.alive_status)
 
     def set_camera(self, camera_pos):
-    
-        self.id = camera_pos.id
+        # Look up BOT_ID based on fiducial id detected by the camera
+        for fiducial in robot_ids:  
+            if fiducial[0]==camera_pos.id:      # if fiducial matches the main id set as BOT_ID
+                self.id = camera_pos.id
+            elif fiducial[1]==camera_pos.id:    # if fiducial matches the death id set objects id to be ignored (-1)
+                self.id = -1
+                #fiducial[2] = 0 # mark as dead #this seems to breaking stuff
 
+        self.alive_status = fiducial[2]     
+        
         self.xpos = ((camera_pos.xpos-self.x_offset)*cos(self.angle_offset)*self.scale+(camera_pos.ypos-self.y_offset)*sin(self.angle_offset)*self.scale)
-                
-        self.ypos = (-(camera_pos.xpos - self.x_offset) * sin(self.angle_offset) * self.scale
-                     +(camera_pos.ypos - self.y_offset) * cos(self.angle_offset) * self.scale )
+        
+        self.ypos = (-(camera_pos.xpos-self.x_offset)*sin(self.angle_offset)*self.scale+(camera_pos.ypos-self.y_offset)*cos(self.angle_offset)*self.scale)
+        
         self.angle = camera_pos.angle - self.angle_offset 
 
         
