@@ -39,7 +39,7 @@ class CameraPosition(Position):
         self.id         = src.id
         self.xpos       = src.xpos * self.camera_x_max
         self.ypos       = (1.0 - src.ypos) * self.camera_y_max
-        self.angle      = radians(src.angle )
+        self.angle      = radians(- src.angle - 90)
         self.xmot       = src.xmot * self.camera_x_max
         self.ymot       = (1.0 - src.ymot) * self.camera_y_max 
         self.rot_vector = -src.rot_vector 
@@ -59,17 +59,21 @@ class ArenaPosition(Position):
 
     def command_str(self):
         heading = int( self.angle / (2 * math.pi) * 16)
-        return "pos %d %d %d %d %d" % (self.id, self.xpos, self.ypos, heading, self.alive_status)
+        return "pos " + str(self.id) + " %d %d %d %d" % (self.xpos, self.ypos, heading, self.alive_status)        
 
     def set_camera(self, camera_pos):
         # Look up BOT_ID based on fiducial id detected by the camera
-        for fiducial in robot_ids:  
+        self.id = -128 #id not found, yet.
+        for fiducial in robot_ids:
+            #print fiducial
             if fiducial[0]==camera_pos.id:      # if fiducial matches the main id set as BOT_ID
                 self.id = camera_pos.id
             elif fiducial[1]==camera_pos.id:    # if fiducial matches the death id set objects id to be ignored (-1)
                 self.id = -1
                 #fiducial[2] = 0 # mark as dead #this seems to breaking stuff
-
+        if self.id == -128: #still not found.
+            self.id = camera_pos.id
+            
         self.alive_status = fiducial[2]     
         
         self.xpos = ((camera_pos.xpos-self.x_offset)*cos(self.angle_offset)*self.scale+(camera_pos.ypos-self.y_offset)*sin(self.angle_offset)*self.scale)
