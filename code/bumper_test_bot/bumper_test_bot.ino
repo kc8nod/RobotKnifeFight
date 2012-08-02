@@ -1,5 +1,6 @@
 #include "bot_id.h"
-#include "pin_def.h"
+#include "pin_defs.h"
+#include "drive_actions.h"
 #include <Servo.h> 
 
 Servo LeftDrive, RightDrive;
@@ -25,7 +26,7 @@ unsigned long TimeServos = 0; //the last time the position of the drive and sens
 unsigned long TimeStatusLED = 0; //the last time the Status LED was updated
 unsigned long TimeEndDriveAction = 0;  //the next time to stop all drive system actions
 
-int DriveActionQue[5][2] = {{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1}}; //second dimension indexes: 0=drive command, 1=length of command time
+unsigned int DriveActionQue[5][2] = {{0,0},{0,0},{0,0},{0,0},{0,0}}; // {drive command, length of command time}
 byte DAQ_ReadIndex = 0;
 byte DAQ_WriteIndex = 0;
 
@@ -42,61 +43,40 @@ void setup(){
 
 void loop(){
   Time = millis();
-  
-  //if there is a current action
-  if(DriveActionQue[DAQ_ReadIndex][0] >= 0){
-    //decode the action
-    LeftForward = LeftReverse = RightForward = RightReverse = false;
-    switch(DriveActionQue[DAQ_ReadIndex][0]){
-      case 0:
-        break;
-      case 1:
-        RightReverse = true;
-        break;
-      case 2:
-        RightForward = true;
-        break;
-      case 4:
-        LeftReverse = true;
-        break;
-      case 5:
-        RightReverse = LeftReverse = true;
-        break;
-      case 6:
-        RightForward = LeftReverse = true;
-        break;
-      case 8:
-        LeftForward = true;
-        break;
-      case 9:
-        LeftForward = RightReverse = true;
-        break;
-      case 10:
-        LeftForward = RightForward = true;
-        break;
-    }
-    
-    if(TimeEndDriveAction > 0){
-      //a timer is set
-      //has is expired?
-      if(Time >= TimeEndDriveAction){
-        DriveActionQue[DAQ_ReadIndex][0] = -1;
-        DriveActionQue[DAQ_ReadIndex][1] = -1;
-        TimeEndDriveAction = 0;
-        
-        DAQ_ReadIndex = (DAQ_ReadIndex == 4) ? 0 : (DAQ_ReadIndex+1); //next que position
-        
-        if(DriveActionQue[DAQ_ReadIndex][0] == -1){
-          StopDrive();
-        }
-      }
-    }else{
-      //set the timer
-      TimeEndDriveAction = Time + DriveActionQue[DAQ_ReadIndex][1];
-    }
 
+  //decode the current action
+  LeftForward = LeftReverse = RightForward = RightReverse = false;
+  switch(DriveActionQue[DAQ_ReadIndex][0]){
+    case STOP:   break;
+    case GO_FORWARD:   LeftForward = RightForward = true;  break;
+    case GO_BACKWARD:  RightReverse = LeftReverse = true;  break;
+    case SWEEP_LEFT:   RightForward = LeftReverse = true;  break;
+    case SWEEP_RIGHT:  LeftForward = RightReverse = true;  break;
+    case PIVOT_LEFT_FORWARD:    RightForward = true;  break;
+    case PIVOT_LEFT_BACKWARD:   RightReverse = true;  break;
+    case PIVOT_RIGHT_FORWARD:   LeftForward = true;   break;
+    case PIVOT_RIGHT_BACKWARD:  LeftReverse = true;   break;
   }
   
+  if(TimeEndDriveAction > 0){
+    //a timer is set
+    //has is expired?
+    if(Time >= TimeEndDriveAction){
+      DriveActionQue[DAQ_ReadIndex][0] = STOP;
+      DriveActionQue[DAQ_ReadIndex][1] = STOP;
+      TimeEndDriveAction = 0;
+      
+      DAQ_ReadIndex = (DAQ_ReadIndex == 4) ? 0 : (DAQ_ReadIndex+1); //next drive action que position
+      
+      if(DriveActionQue[DAQ_ReadIndex][0] == STOP){
+        StopDrive();
+      }
+    }
+  }else{
+    //set the timer
+    TimeEndDriveAction = Time + DriveActionQue[DAQ_ReadIndex][1];
+  }
+
   
   //Blink the Status LED ever 1000ms
   if((Time - TimeStatusLED) > 1000){
@@ -123,10 +103,10 @@ void loop(){
       StopDrive();
       DriveActionQue_Clear();
       
-      DriveActionQue_Add(5,250); //Backward for 250ms
-      DriveActionQue_Add(6,250); //Pivot Left for 250ms
-      DriveActionQue_Add(6,250); //Pivot Left for 250ms
-      DriveActionQue_Add(10,30000); //Forward for 30000ms
+      DriveActionQue_Add(GO_BACKWARD,250); //Backward for 250ms
+      DriveActionQue_Add(SWEEP_RIGHT,150); //Sweep Right for 150ms
+      DriveActionQue_Add(SWEEP_LEFT,500); //Sweep Left for 500ms
+      DriveActionQue_Add(GO_FORWARD,30000 ); //Forward for 30000ms
     }
   }
   
@@ -136,9 +116,10 @@ void loop(){
       StopDrive();
       DriveActionQue_Clear();
     
-      DriveActionQue_Add(5,250); //Backward for 250ms
-      DriveActionQue_Add(9,250); //Pivot Right for 250ms
-      DriveActionQue_Add(10,30000); //Forward for 5000ms
+      DriveActionQue_Add(GO_BACKWARD,250); //Backward for 250ms
+      DriveActionQue_Add(SWEEP_LEFT,150); //Sweep Left for 150ms
+      DriveActionQue_Add(SWEEP_RIGHT,500); //Sweep Right for 500ms
+      DriveActionQue_Add(GO_FORWARD,30000); //Forward for 30000ms
     }
   }
 
@@ -147,20 +128,20 @@ void loop(){
 /********************************************************************************************************/
 void DriveActionQue_Clear(){
   for(int i=0; i<5; i++){
-    DriveActionQue[i][0] = -1;
-    DriveActionQue[i][1] = -1;
+    DriveActionQue[i][0] = STOP;
+    DriveActionQue[i][1] = STOP;
   }
   TimeEndDriveAction = 0;
   DAQ_WriteIndex = DAQ_ReadIndex = 0;
 }
 
 void DriveActionQue_Add(int command, int duration){
-  if(DriveActionQue[DAQ_WriteIndex][0] == -1){
+  if(DriveActionQue[DAQ_WriteIndex][0] == STOP){
     DriveActionQue[DAQ_WriteIndex][0] = command;
     DriveActionQue[DAQ_WriteIndex][1] = duration;
     DAQ_WriteIndex = (DAQ_WriteIndex==4) ? 0 : (DAQ_WriteIndex+1);
   }else{
-    //Command Buffer Overflow
+    //Command Buffer Overflow... command goes in the bit bucket
   }
 }
 
@@ -182,7 +163,6 @@ void setServoPostions(){
     }else{
       LeftDrivePos = LEFT_STOP;
     }
-    
     
     
     //Figure out the new Right position if needed
