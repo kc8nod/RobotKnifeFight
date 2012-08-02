@@ -36,7 +36,9 @@ if __name__ == '__main__':
      
         tracking.update()
         camera_pos1 = arena.CameraPosition()
-        camera_pos1.set_tuio(tracking.objects().next())
+        obj = tracking.objects().next()
+        print "debug: raw tuio object:", obj
+        camera_pos1.set_tuio(obj)
         
         print "arena_corner1: %s" % str(arena_corner1)
         print "camera_pos1: %s" % str(camera_pos1)
@@ -57,7 +59,9 @@ if __name__ == '__main__':
         
         tracking.update()
         camera_pos2 = arena.CameraPosition()
-        camera_pos2.set_tuio(tracking.objects().next())
+        obj = tracking.objects().next()
+        print "debug: raw tuio object:", obj
+        camera_pos2.set_tuio(obj)
         
         print
         print "enter the x,y coordinates of the opposite corner"
