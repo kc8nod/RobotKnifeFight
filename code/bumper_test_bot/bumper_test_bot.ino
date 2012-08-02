@@ -5,17 +5,17 @@
 
 Servo LeftDrive, RightDrive;
 
-#define RIGHT_FF 0
+#define RIGHT_FF 0  //Full Forward
 #define RIGHT_STOP 93
-#define RIGHT_FR 180
-byte RightDrivePos = RIGHT_STOP;  //The right drive systems "throttle", 0=full forward, 90=stopped, 180=full reverse
+#define RIGHT_FR 180 //Full Reverse
+byte RightDrivePos = RIGHT_STOP;  //The right drive systems "throttle"
 boolean RightForward = false;
 boolean RightReverse = false;
 
-#define LEFT_FF 180
+#define LEFT_FF 180 //Full Forward
 #define LEFT_STOP 93
-#define LEFT_FR 0
-byte LeftDrivePos = LEFT_STOP;    //The right drive systems "throttle", 180=full forward, 90=stopped, 0=full reverse
+#define LEFT_FR 0  //Full Reverse
+byte LeftDrivePos = LEFT_STOP;    //The left drive systems "throttle"
 boolean LeftForward = false;
 boolean LeftReverse = false;
 
@@ -37,7 +37,7 @@ void setup(){
   pinMode(BUMP_SWITCH_LEFT_PIN, INPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
   
-  Serial.begin(9600);
+  Serial.begin(115200);
 }
 
 
@@ -89,6 +89,11 @@ void loop(){
   //Update the Servos postion ever 15ms
   if((Time - TimeServos) > 15){
     setServoPostions();
+    
+    //Update the servo positions.
+    LeftDrive.write(LeftDrivePos);
+    RightDrive.write(RightDrivePos);
+    
     TimeServos = Time;
   }
   
@@ -176,10 +181,6 @@ void setServoPostions(){
     }else{
       RightDrivePos = RIGHT_STOP;
     }
-    
-    //Update the servo positions.
-    LeftDrive.write(LeftDrivePos);
-    RightDrive.write(RightDrivePos);
 }
 
 
