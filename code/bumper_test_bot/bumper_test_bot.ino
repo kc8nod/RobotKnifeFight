@@ -101,30 +101,31 @@ void loop(){
   //Thought Processes
   /*****************************/
   
-  //Go forward until you hit something
+  //Right bumper hit something
   if(!digitalRead(BUMP_SWITCH_RIGHT_PIN)){
-    //hit something
+    //if Going forward or stopped, but not backing up
     if(LeftForward || RightForward || (!LeftForward && !RightForward && !LeftReverse && !RightReverse)){
       StopDrive();
       DriveActionQue_Clear();
       
-      DriveActionQue_Add(GO_BACKWARD,250); //Backward for 250ms
-      DriveActionQue_Add(SWEEP_RIGHT,150); //Sweep Right for 150ms
-      DriveActionQue_Add(SWEEP_LEFT,500); //Sweep Left for 500ms
-      DriveActionQue_Add(GO_FORWARD,30000 ); //Forward for 30000ms
+      DriveActionQue_Add(GO_BACKWARD,150); //Backward
+      DriveActionQue_Add(SWEEP_RIGHT,250); //Sweep Right, comment this out to make less aggressive
+      DriveActionQue_Add(SWEEP_LEFT,500); //Sweep Left
+      DriveActionQue_Add(GO_FORWARD,30000 ); //Forward
     }
   }
   
+  //Left bumper hit something
   if(!digitalRead(BUMP_SWITCH_LEFT_PIN)){
-    //hit something
+    //if Going forward or stopped, but not backing up
     if(LeftForward || RightForward || (!LeftForward && !RightForward && !LeftReverse && !RightReverse)){
       StopDrive();
       DriveActionQue_Clear();
     
-      DriveActionQue_Add(GO_BACKWARD,250); //Backward for 250ms
-      DriveActionQue_Add(SWEEP_LEFT,150); //Sweep Left for 150ms
-      DriveActionQue_Add(SWEEP_RIGHT,500); //Sweep Right for 500ms
-      DriveActionQue_Add(GO_FORWARD,30000); //Forward for 30000ms
+      DriveActionQue_Add(GO_BACKWARD,150); //Backward
+      DriveActionQue_Add(SWEEP_LEFT,250); //Sweep Left, comment this out to make less aggressive
+      DriveActionQue_Add(SWEEP_RIGHT,500); //Sweep Right
+      DriveActionQue_Add(GO_FORWARD,30000); //Forward
     }
   }
 
@@ -139,6 +140,7 @@ void DriveActionQue_Clear(){
   TimeEndDriveAction = 0;
   DAQ_WriteIndex = DAQ_ReadIndex = 0;
 }
+
 
 void DriveActionQue_Add(int command, int duration){
   if(DriveActionQue[DAQ_WriteIndex][0] == STOP){
@@ -156,15 +158,16 @@ void StopDrive(){
   setServoPostions();
 }
 
+
 void setServoPostions(){
     //Figure out the new Left position if needed
     if(LeftForward && LeftReverse){
       LeftForward = LeftReverse = false; //This shouldn't happen...
     }
     if(LeftForward){
-      LeftDrivePos = (LeftDrivePos < LEFT_FF) ? (LeftDrivePos+1) : LEFT_FF;
+      LeftDrivePos = LEFT_FF;
     }else if(LeftReverse){
-      LeftDrivePos = (LeftDrivePos > LEFT_FR) ? (LeftDrivePos-1) : LEFT_FR;
+      LeftDrivePos = LEFT_FR;
     }else{
       LeftDrivePos = LEFT_STOP;
     }
@@ -175,9 +178,9 @@ void setServoPostions(){
       RightForward = RightReverse = false; //This shouldn't happen...
     }
     if(RightForward){
-      RightDrivePos = (RightDrivePos > RIGHT_FF)?(RightDrivePos-1):RIGHT_FF;
+      RightDrivePos = RIGHT_FF;
     }else if(RightReverse){
-      RightDrivePos = (RightDrivePos < RIGHT_FR)?(RightDrivePos+1):RIGHT_FR;
+      RightDrivePos = RIGHT_FR;
     }else{
       RightDrivePos = RIGHT_STOP;
     }

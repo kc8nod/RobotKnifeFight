@@ -14,7 +14,7 @@ void outputStatus(){
   Serial.print("\tvw_rx_active:");
   Serial.print(vw_rx_active);
   Serial.print("\tradio_count:");
-  Serial.println(radio_count);
+  Serial.println(message_count);
   Serial.println(radio);
 }
 

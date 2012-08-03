@@ -8,10 +8,10 @@ unsigned long now = 0;
 
 ServoTimer2 LeftDrive, RightDrive;
 #define LEFT_FWD 2000
-#define LEFT_STOP 1467
+#define LEFT_STOP 1500
 #define LEFT_REV 1000
 #define RIGHT_FWD 1000
-#define RIGHT_STOP 1458
+#define RIGHT_STOP 1500
 #define RIGHT_REV 2000
 unsigned int speed_L = LEFT_STOP;
 unsigned int speed_R = RIGHT_STOP;
@@ -44,14 +44,6 @@ void setup(){
   RightDrive.write(RIGHT_STOP);
   
   radio.start();
-  
-  //Blink 3 time to indicate a reset
-  for(int i=0; i<3; i++){
-    digitalWrite(STATUS_LED_PIN, true);
-    delay(100);
-    digitalWrite(STATUS_LED_PIN, false);
-    delay(100);
-  }
   
   serialInputString.reserve(16);
   Serial.begin(115200);
