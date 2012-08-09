@@ -66,9 +66,7 @@ if __name__ == '__main__':
         print
         print "enter the x,y coordinates of the opposite corner"
         in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena_corner2.xpos, arena_corner2.ypos))
-        
         match = xy_pattern.match(in_str)
-
         if match:
             arena_corner2.xpos = float(match.group(1))
             arena_corner2.ypos = float(match.group(3))
@@ -76,7 +74,18 @@ if __name__ == '__main__':
         else:
             print "using defaults"
         
-        
+
+        print
+        print "enter the cameras max resolution"
+        in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (camera_pos2.camera_x_max, camera_pos2.camera_y_max))
+        match = xy_pattern.match(in_str)
+        if match:
+            camera_pos2.camera_x_max = float(match.group(1))
+            camera_pos2.camera_y_max = float(match.group(3))
+            
+        else:
+            print "using defaults"
+ 
         print "arena_corner2: %s" % str(arena_corner2)
         print "camera_pos2: %s" % str(camera_pos2)
         
