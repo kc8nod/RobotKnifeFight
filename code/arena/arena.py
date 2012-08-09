@@ -31,8 +31,8 @@ class Position(object):
         
 class CameraPosition(Position):
 
-    camera_x_max = 1.0
-    camera_y_max = 1.0
+    camera_x_max = 1280
+    camera_y_max = 720
 
     def set_tuio(self, src):
         self.sessionid  = src.sessionid
@@ -106,7 +106,7 @@ def write_config(filename='arena_config.json'):
                 'y_offset'     : ArenaPosition.y_offset,
                 'angle_offset' : ArenaPosition.angle_offset,
                 'camera_x_max' : CameraPosition.camera_x_max,
-                'camera_y_max' : CameraPosition.camera_y_max,
+                'camera_y_max' : CameraPosition.camera_y_max
              }
 
     with open(filename, 'w') as fh:
