@@ -21,7 +21,6 @@ if __name__ == '__main__':
         print "no config file found. writing a new one"
   
     try:
-
         print "Put exactly one glyph in the camera's field of view."
 
         while True:
@@ -62,6 +61,7 @@ if __name__ == '__main__':
         obj = tracking.objects().next()
         print "debug: raw tuio object:", obj
         camera_pos2.set_tuio(obj)
+
         
         print
         print "enter the x,y coordinates of the opposite corner"
@@ -70,28 +70,26 @@ if __name__ == '__main__':
         if match:
             arena_corner2.xpos = float(match.group(1))
             arena_corner2.ypos = float(match.group(3))
-            
         else:
             print "using defaults"
         
 
         print
         print "enter the cameras max resolution"
-        in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (camera_pos2.camera_x_max, camera_pos2.camera_y_max))
+        in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena.CameraPosition.camera_x_max, arena.CameraPosition.camera_y_max))
         match = xy_pattern.match(in_str)
         if match:
-            camera_pos2.camera_x_max = float(match.group(1))
-            camera_pos2.camera_y_max = float(match.group(3))
-            
+            arena.CameraPosition.camera_x_max = float(match.group(1))
+            arena.CameraPosition.camera_y_max = float(match.group(3))
         else:
             print "using defaults"
+
  
+        arena.ArenaPosition.calibrate(camera_pos1, arena_corner1, camera_pos2, arena_corner2)
+
+        
         print "arena_corner2: %s" % str(arena_corner2)
         print "camera_pos2: %s" % str(camera_pos2)
-        
-        arena.ArenaPosition.calibrate(camera_pos1, arena_corner1,
-                                      camera_pos2, arena_corner2)
-        
         print "scale: %s" % arena.ArenaPosition.scale
         print "x_offset: %s" % arena.ArenaPosition.x_offset
         print "y_offset: %s" % arena.ArenaPosition.y_offset
