@@ -28,15 +28,26 @@ if __name__ == '__main__':
             objs = list(tracking.objects())
             if len(objs) == 1:
                 break
+
+        print
+        print "enter the cameras max resolution"
+        in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena.CameraPosition.camera_x_max, arena.CameraPosition.camera_y_max))
+        match = xy_pattern.match(in_str)
+        if match:
+            arena.CameraPosition.camera_x_max = float(match.group(1))
+            arena.CameraPosition.camera_y_max = float(match.group(3))
+        else:
+            print "using defaults"
                 
-                
+
+        print      
         print "Move the glyph to the 0,0 point of the arena..."
         raw_input("then press return to continue.")
      
         tracking.update()
-        camera_pos1 = arena.CameraPosition()
         obj = tracking.objects().next()
-        print "debug: raw tuio object:", obj
+        print "DEBUG: raw tuio object:", obj
+        camera_pos1 = arena.CameraPosition()
         camera_pos1.set_tuio(obj)
         
         print "arena_corner1: %s" % str(arena_corner1)
@@ -57,12 +68,11 @@ if __name__ == '__main__':
                 break
         
         tracking.update()
-        camera_pos2 = arena.CameraPosition()
         obj = tracking.objects().next()
-        print "debug: raw tuio object:", obj
+        print "DEBUG: raw tuio object:", obj
+        camera_pos2 = arena.CameraPosition()
         camera_pos2.set_tuio(obj)
 
-        
         print
         print "enter the x,y coordinates of the opposite corner"
         in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena_corner2.xpos, arena_corner2.ypos))
@@ -74,22 +84,13 @@ if __name__ == '__main__':
             print "using defaults"
         
 
-        print
-        print "enter the cameras max resolution"
-        in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena.CameraPosition.camera_x_max, arena.CameraPosition.camera_y_max))
-        match = xy_pattern.match(in_str)
-        if match:
-            arena.CameraPosition.camera_x_max = float(match.group(1))
-            arena.CameraPosition.camera_y_max = float(match.group(3))
-        else:
-            print "using defaults"
+        print "arena_corner2: %s" % str(arena_corner2)
+        print "camera_pos2: %s" % str(camera_pos2)
 
  
         arena.ArenaPosition.calibrate(camera_pos1, arena_corner1, camera_pos2, arena_corner2)
 
         
-        print "arena_corner2: %s" % str(arena_corner2)
-        print "camera_pos2: %s" % str(camera_pos2)
         print "scale: %s" % arena.ArenaPosition.scale
         print "x_offset: %s" % arena.ArenaPosition.x_offset
         print "y_offset: %s" % arena.ArenaPosition.y_offset

@@ -38,13 +38,13 @@ class CameraPosition(Position):
         self.sessionid  = src.sessionid
         self.id         = src.id
         self.xpos       = src.xpos * self.camera_x_max
-        self.ypos       = (1.0 - src.ypos) * self.camera_y_max
-        self.angle      = radians(- src.angle - 90)
+        self.ypos       = self.camera_y_max - (src.ypos * self.camera_y_max)
+        self.angle      = src.angle
         self.xmot       = src.xmot * self.camera_x_max
-        self.ymot       = (1.0 - src.ymot) * self.camera_y_max 
-        self.rot_vector = -src.rot_vector 
+        self.ymot       = self.camera_y_max - (src.ymot * self.camera_y_max) 
+        self.rot_vector = src.rot_vector 
         self.mot_accel  = src.mot_accel 
-        self.rot_accel  = -src.rot_accel 
+        self.rot_accel  = src.rot_accel 
 
 
 
