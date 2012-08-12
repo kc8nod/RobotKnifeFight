@@ -37,9 +37,9 @@ class CameraPosition(Position):
     def set_tuio(self, src):
         self.sessionid  = src.sessionid
         self.id         = src.id
-        self.xpos       = src.xpos * self.camera_x_max
-        self.ypos       = self.camera_y_max - (src.ypos * self.camera_y_max)
-        self.angle      = src.angle
+        self.xpos       = src.xpos * self.camera_x_max  #scale position by resolution
+        self.ypos       = self.camera_y_max - (src.ypos * self.camera_y_max) #scale position by resolution, reverse positive direction
+        self.angle      = radians(360-(src.angle+90)) #rotate 90 degrees and reverse the positive direction
         self.xmot       = src.xmot * self.camera_x_max
         self.ymot       = self.camera_y_max - (src.ymot * self.camera_y_max) 
         self.rot_vector = src.rot_vector 

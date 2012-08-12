@@ -10,9 +10,12 @@ xy_pattern = re.compile('(\d+(\.\d*)?|\.\d+),(\d+(\.\d*)?|\.\d+)')
 
 if __name__ == '__main__':
     tracking = tuio.Tracking()
-  
+
+    
     arena_corner1 = arena.ArenaPosition(0.0, 0.0, 0.0)
-    arena_corner2 = arena.ArenaPosition(70.5, 46.5, 0.0)
+    #(arena dimension - both wall thicknesses - width of symbol)
+    #ex. 72-(.72*2)-3.75, 48-(.75*2)-3.75
+    arena_corner2 = arena.ArenaPosition(66.75, 42.75, 0.0) 
     
 
     try:
@@ -21,16 +24,8 @@ if __name__ == '__main__':
         print "no config file found. writing a new one"
   
     try:
-        print "Put exactly one glyph in the camera's field of view."
-
-        while True:
-            tracking.update()
-            objs = list(tracking.objects())
-            if len(objs) == 1:
-                break
-
         print
-        print "enter the cameras max resolution"
+        print "enter the camera's resolution"
         in_str = raw_input("or press return to accept the defaults [%.1f,%.1f] " % (arena.CameraPosition.camera_x_max, arena.CameraPosition.camera_y_max))
         match = xy_pattern.match(in_str)
         if match:
@@ -38,7 +33,13 @@ if __name__ == '__main__':
             arena.CameraPosition.camera_y_max = float(match.group(3))
         else:
             print "using defaults"
-                
+
+        print "Put exactly one glyph in the camera's field of view."
+        while True:
+            tracking.update()
+            objs = list(tracking.objects())
+            if len(objs) == 1:
+                break  
 
         print      
         print "Move the glyph to the 0,0 point of the arena..."
@@ -59,7 +60,6 @@ if __name__ == '__main__':
          
         
         tracking.stop()
-        tracking = tuio.Tracking()
 
         while True:
             tracking.update()
