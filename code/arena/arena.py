@@ -7,7 +7,7 @@ from math import sin, cos, radians
 # a robot's main fiducial id is element 0 .
 # the robot's death fiducial id is element 1 .
 # the robot's alive status is elemt 2. (0=dead, 1=alive)
-robot_ids = [[0,1,1],[2,3,1],[4,5,1],[6,7,1]]
+robot_ids = [[0,4,1],[1,5,1],[2,6,1],[3,7,1]]
 
 class Position(object):
     def __init__(self, x=0, y=0, a=0, id=None):
