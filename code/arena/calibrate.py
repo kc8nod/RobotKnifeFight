@@ -35,21 +35,34 @@ if __name__ == '__main__':
             print "using defaults"
 
         print "Put exactly one glyph in the camera's field of view."
+
+        tracking.start()
         while True:
             tracking.update()
             objs = list(tracking.objects())
             if len(objs) == 1:
-                break  
+                break
+        tracking.stop()
+        print
+        print objs[0]
 
         print      
         print "Move the glyph to the 0,0 point of the arena..."
         raw_input("then press return to continue.")
      
-        tracking.update()
-        obj = tracking.objects().next()
-        print "DEBUG: raw tuio object:", obj
+        
+        tracking.start()
+        while True:
+            tracking.update()
+            objs = list(tracking.objects())
+            if len(objs) == 1:
+                break
+        tracking.stop()
+        print
+        print objs[0]
+        
         camera_pos1 = arena.CameraPosition()
-        camera_pos1.set_tuio(obj)
+        camera_pos1.set_tuio(objs[0])
         
         print "arena_corner1: %s" % str(arena_corner1)
         print "camera_pos1: %s" % str(camera_pos1)
@@ -57,21 +70,19 @@ if __name__ == '__main__':
         print
         print "now move the glyph to the opposite corner"
         raw_input("then press return to continue.")
-         
-        
-        tracking.stop()
 
+        tracking.start()
         while True:
             tracking.update()
             objs = list(tracking.objects())
             if len(objs) == 1:
                 break
+        tracking.stop()
+        print
+        print objs[0]
         
-        tracking.update()
-        obj = tracking.objects().next()
-        print "DEBUG: raw tuio object:", obj
         camera_pos2 = arena.CameraPosition()
-        camera_pos2.set_tuio(obj)
+        camera_pos2.set_tuio(objs[0])
 
         print
         print "enter the x,y coordinates of the opposite corner"
@@ -84,10 +95,14 @@ if __name__ == '__main__':
             print "using defaults"
         
 
-        print "arena_corner2: %s" % str(arena_corner2)
+        print
+        print "camera_pos1: %s" % str(camera_pos1)
         print "camera_pos2: %s" % str(camera_pos2)
+        print "arena_corner1: %s" % str(arena_corner1)
+        print "arena_corner2: %s" % str(arena_corner2)
+        print
 
- 
+        
         arena.ArenaPosition.calibrate(camera_pos1, arena_corner1, camera_pos2, arena_corner2)
 
         
