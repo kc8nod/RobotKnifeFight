@@ -1,0 +1,5 @@
+﻿// Robot Knife Fight drivable bot via Wiimote
+// Wiimote Sideways, by Matt Switlik
+WASD = Wiimote1.DPadSideways
+Shift = Wiimote1.One or Wiimote1.Two
+
