@@ -63,15 +63,16 @@ void loop(){
     message_count++;
     
     outputStatus(); //comment out if not debugging
-    
-    switch(radio.packet.message)  //Do stuff based on message type.  
-    {
-      case 0:  // position message
-        //parse position data.
-        break;  
-      default: 
-        break;  // do nothing    
-    }
+
+//Instead of message types what if this was the game_id indicator in case multiple games in same area
+//    switch(radio.packet.message)  //Do stuff based on message type.  
+//    {
+//      case 0:  // position message
+//        //parse position data.
+//        break;  
+//      default: 
+//        break;  // do nothing    
+//    }
   }
   
   if(vw_rx_active){  //if radio is busy receiving a message

@@ -15,17 +15,16 @@ if __name__ == '__main__':
     print "list functions to access tracked objects:", tracking.get_helpers()
 
 
-    
     try:
         while True:
-            tracking.update()
-            for obj in tracking.objects():
-                obj.update()
-                print obj.id,obj.xpos,obj.ypos
-            
-            
-
+            while tracking.update():
+                objs = tracking.objects().next()
+                print objs
+                
             
     except KeyboardInterrupt:
+        while tracking.update():
+            objs = tracking.objects().next()
+            print objs
         tracking.stop()
         print "\nSTOP"
