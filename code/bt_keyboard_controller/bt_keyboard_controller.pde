@@ -10,21 +10,20 @@
  
  int val;      // Data received from the serial port
  
+ boolean up = false;
+ boolean down = false;
+ boolean left = false;
+ boolean right = false;
+ 
  void setup()  {
    size(200, 200);
    boxX = width/2.0;
    boxY = height/2.0;
    rectMode(RADIUS); 
    
-   // List all the available serial ports in the output pane. 
-   // You will need to choose the port that the Arduino board is 
-   // connected to from this list. The first port in the list is 
-   // port #0 and the third port in the list is port #2. 
    println(Serial.list()); 
  
-   // Open the port that the Arduino board is connected to (in this case #0) 
-   // Make sure to open the port at the same speed Arduino is using (9600bps) 
-   int COM_INDEX = 1;
+   int COM_INDEX = 0;
    port = new Serial(this, Serial.list()[COM_INDEX], 115200); 
    print("Connected to:");
    println(Serial.list()[COM_INDEX]);
@@ -33,73 +32,94 @@
  void draw() 
  { 
    background(0);
- 
-   stroke(153);
-   fill(153);
-     
-   // Draw the box
+      
+   // Draw the shapes
+   stroke(100);
+   fill(100);
    drawCentered();
    drawUp();
    drawDown();
    drawRight();
    drawLeft();
    
-   stroke(255); 
-   noFill();  
-   if (keyPressed){
+   stroke(255);
+   fill(255); 
+   if(up){drawUp();}
+   if(down){drawDown();}
+   if(left){drawLeft();}
+   if(right){drawRight();}
+   
+   if(up && left){
+     print("FL,");
+   }else if(up && right){
+     print ("FR,");
+   }else if(down && left){
+     print ("RL,");
+   }else if(down && right){
+     print ("RR,");
+   }else if(up){
+     print ("F,");
+   }else if(down){
+     print ("R,");
+   }else if(left){
+     print ("L,");
+   }else if(right){
+     print ("R,");
+   }
+ }
+
+
+ void keyPressed() {
+   if(keyCode > 0){
+     println("pressed: "+ keyCode +" = '"+ key +"'");
      switch(key){
        case 'w':
        case 'W':
-         drawUp();
-         port.write(key);
-         val = port.read();
-         println(key + " = " + char(val));
+         up = true;
          break;
+         
        case 'a':
        case 'A':
-         drawLeft();
-         port.write(key);
-         val = port.read();
-         println(key + " = " + char(val));
+         left = true;
          break;
+         
        case 's':
        case 'S':
-         drawDown();
-         port.write(key);
-         val = port.read();
-         println(key + " = " + char(val));
+         down = true;
          break;
+         
        case 'd':
        case 'D':
-         drawRight();
-         port.write(key);
-         val = port.read();
-         println(key + " = " + char(val));
+         right = true;
          break;
      }     
-   } else {
-     drawCentered();
-     port.write('x');
    }
  }
  
- void drawUp(){
-   triangle(boxX,(boxY-2.5*boxSize-boxMargin), (boxX-boxSize),(boxY-boxSize-boxMargin), (boxX+boxSize),(boxY-boxSize-boxMargin)); //Up
- }
  
- void drawDown(){
-   triangle(boxX,(boxY+2.5*boxSize+boxMargin), (boxX-boxSize),(boxY+boxSize+boxMargin), (boxX+boxSize),(boxY+boxSize+boxMargin)); //Down
+ void keyReleased() {
+   if(keyCode > 0){
+     println("released: "+ keyCode +" = '"+ key +"'");
+     switch(key){
+       case 'w':
+       case 'W':
+         up = false;
+         break;
+         
+       case 'a':
+       case 'A':
+         left = false;
+         break;
+         
+       case 's':
+       case 'S':
+         down = false;
+         break;
+         
+       case 'd':
+       case 'D':
+         right = false;
+         break;
+     } 
+   }
  }
- 
- void drawRight(){
-   triangle((boxX+2.5*boxSize+boxMargin),boxY, (boxX+boxSize+boxMargin),(boxY-boxSize), (boxX+boxSize+boxMargin),(boxY+boxSize)); //Right
- }
- 
- void drawLeft(){
-   triangle((boxX-2.5*boxSize-boxMargin),boxY, (boxX-boxSize-boxMargin),(boxY-boxSize), (boxX-boxSize-boxMargin),(boxY+boxSize)); //Left
- }
- 
- void drawCentered(){
-   rect(boxX, boxY, boxSize, boxSize);
- }
- 

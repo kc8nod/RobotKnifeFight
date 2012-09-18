@@ -36,6 +36,7 @@ void setup() {
   RightDrive.write(RIGHT_STOP);
   
   radio.start();
+  
 }
 
 void loop() {
@@ -48,31 +49,31 @@ void loop() {
       case 'w':
       case 'W':
         digitalWrite(STATUS_LED_PIN, HIGH);
-        Serial.print("w");
         speed_L = LEFT_FWD;
         speed_R = RIGHT_FWD;
         break;
+        
       case 'a':
       case 'A':
         digitalWrite(STATUS_LED_PIN, HIGH);
-        Serial.print('a');
         speed_L = LEFT_REV;
         speed_R = RIGHT_FWD;
         break;
+        
       case 's':
       case 'S':
         digitalWrite(STATUS_LED_PIN, HIGH);
-        Serial.print("s");
         speed_L = LEFT_REV;
         speed_R = RIGHT_REV;
         break;
+        
       case 'd':
       case 'D':
         digitalWrite(STATUS_LED_PIN, HIGH);
-        Serial.print("d");
         speed_L = LEFT_FWD;
         speed_R = RIGHT_REV;
         break;
+        
       default:
         digitalWrite(STATUS_LED_PIN, LOW);
         speed_L = LEFT_STOP;
@@ -88,5 +89,4 @@ void loop() {
     timeLastServoUp = now;
   }
   
-  delay(1);
 }
