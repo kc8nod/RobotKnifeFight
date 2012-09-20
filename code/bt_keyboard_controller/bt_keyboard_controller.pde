@@ -32,7 +32,13 @@
  }
  
  void draw() 
- { 
+ {
+   while (port.available() > 0) {
+     String inBuffer = port.readString();   
+     if (inBuffer != null) {
+       println(inBuffer);
+     }
+   }
    background(0);
       
    // Draw the shapes
@@ -52,32 +58,30 @@
    if(right){drawRight();}
    
    if(up && left){
-     print("FL,");
+     port.write("FWD "+(speed/10)+","+speed+";");
    }else if(up && right){
-     print ("FR,");
+     port.write("FWD "+speed+","+(speed/10)+";");
    }else if(down && left){
-     print ("RL,");
+     port.write("REV "+(speed/10)+","+speed+";");
    }else if(down && right){
-     print ("RR,");
+     port.write("REV "+speed+","+(speed/10)+";");
    }else if(up){
-     print ("FWD,"+speed+";");
-     port.write("FWD,"+speed+";");
+     port.write("FWD "+speed+";");
    }else if(down){
-     print ("REV,"+speed+";");
-     port.write("REV,"+speed+";");
+     port.write("REV "+speed+";");
    }else if(left){
-     print ("LEFT,"+speed+";");
-     port.write("LEFT,"+speed+";");
+     port.write("LEFT "+speed+";");
    }else if(right){
-     print ("RIGHT,"+speed+";");
-     port.write("RIGHT,"+speed+";");
+     port.write("RIGHT "+speed+";");
+   }else{
+     port.write("STOP;");
    }
  }
 
 
  void keyPressed() {
    if(keyCode > 0){
-     println("pressed: "+ keyCode +" = '"+ key +"'");
+     //println("pressed: "+ keyCode +" = '"+ key +"'");
      switch(key){
        case 'w':
        case 'W':
@@ -114,7 +118,7 @@
  
  void keyReleased() {
    if(keyCode > 0){
-     println("released: "+ keyCode +" = '"+ key +"'");
+     //println("released: "+ keyCode +" = '"+ key +"'");
      switch(key){
        case 'w':
        case 'W':

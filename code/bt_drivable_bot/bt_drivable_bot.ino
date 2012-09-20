@@ -84,18 +84,19 @@ void outputStatus(){
   Serial.print(speed_L);
   Serial.print(", R:");
   Serial.print(speed_R);
-  Serial.print(", vw_rx_active:");
-  Serial.print(vw_rx_active);
-  Serial.print(", radio_count:");
-  Serial.println(message_count);
-  Serial.println(radio);
+  //Serial.print(", vw_rx_active:");
+  //Serial.print(vw_rx_active);
+  //Serial.print(", radio_count:");
+  //Serial.println(message_count);
+  //Serial.println(radio);
 }
 
 
 void setLeftSpeed(boolean forward, int throttle){
   if(0 <= throttle && throttle <= 100){
     int x = (forward) ? LEFT_FWD : LEFT_REV;
-    speed_L = (x - LEFT_STOP) * (throttle/100) + LEFT_STOP;
+    speed_L = (x - LEFT_STOP) * float(throttle)/100 + LEFT_STOP;
+    //Serial.println(speed_L);
   }else{
     error_bad_param(throttle);
   }
@@ -103,9 +104,10 @@ void setLeftSpeed(boolean forward, int throttle){
 
 
 void setRightSpeed(boolean forward, int throttle){
-  if(0 < throttle && throttle <= 100){
+  if(0 <= throttle && throttle <= 100){
     int x = (forward) ? RIGHT_FWD : RIGHT_REV;
-    speed_R = (x - RIGHT_STOP) * (throttle/100) + RIGHT_STOP;
+    speed_R = (x - RIGHT_STOP) * float(throttle)/100 + RIGHT_STOP;
+    //Serial.println(speed_R);
   }else{
     error_bad_param(throttle);
   }
