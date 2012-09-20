@@ -15,6 +15,8 @@
  boolean left = false;
  boolean right = false;
  
+ int speed = 0;
+ 
  void setup()  {
    size(200, 200);
    boxX = width/2.0;
@@ -58,13 +60,17 @@
    }else if(down && right){
      print ("RR,");
    }else if(up){
-     print ("F,");
+     print ("FWD,"+speed+";");
+     port.write("FWD,"+speed+";");
    }else if(down){
-     print ("R,");
+     print ("REV,"+speed+";");
+     port.write("REV,"+speed+";");
    }else if(left){
-     print ("L,");
+     print ("LEFT,"+speed+";");
+     port.write("LEFT,"+speed+";");
    }else if(right){
-     print ("R,");
+     print ("RIGHT,"+speed+";");
+     port.write("RIGHT,"+speed+";");
    }
  }
 
@@ -76,21 +82,30 @@
        case 'w':
        case 'W':
          up = true;
+         speed = 100;
          break;
          
        case 'a':
        case 'A':
          left = true;
+         speed = 100;
          break;
          
        case 's':
        case 'S':
          down = true;
+         speed = 100;
          break;
          
        case 'd':
        case 'D':
          right = true;
+         speed = 100;
+         break;
+         
+       case ' ':
+         up = down = left = right = false;
+         speed = 0;
          break;
      }     
    }
