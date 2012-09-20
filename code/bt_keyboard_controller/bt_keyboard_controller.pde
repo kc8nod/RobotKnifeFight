@@ -2,9 +2,15 @@
  
  float boxX;
  float boxY;
- int boxSize = 20;
- int boxMargin = 3;
- boolean mouseOverBox = false;
+ int boxSize;
+ int boxMargin;
+ 
+ float button1X;
+ float button1Y;
+ float button2X;
+ float button2Y;
+ float throttleX;
+ float throttleY;
  
  Serial port; 
  
@@ -14,19 +20,31 @@
  boolean down = false;
  boolean left = false;
  boolean right = false;
+ boolean button1 = false;
+ boolean button2 = false;
  
  int speed = 100;
  
  void setup()  {
-   size(200, 200);
-   boxX = width/2.0;
+   size(400, 200);
+   boxX = width/4.0;
    boxY = height/2.0;
+   boxSize = 20;
+   boxMargin = 3;
+   button1X = 2.75*width/4.0;
+   button1Y = height/2.0;
+   button2X = 3.4*width/4.0;
+   button2Y = height/2.0;
+   throttleX = width/2.0;
+   throttleY = height/4.0;
    rectMode(RADIUS); 
    
    println(Serial.list()); 
  
    int COM_INDEX = 0;
-   port = new Serial(this, Serial.list()[COM_INDEX], 115200); 
+   //if(Serial.list()[COM_INDEX]){
+     port = new Serial(this, Serial.list()[COM_INDEX], 115200);
+   //}
    print("Connected to:");
    println(Serial.list()[COM_INDEX]);
  }
@@ -49,6 +67,9 @@
    drawDown();
    drawRight();
    drawLeft();
+   drawButton1();
+   drawButton2();
+   drawThrottle();
    
    stroke(255);
    fill(255); 
@@ -56,6 +77,8 @@
    if(down){drawDown();}
    if(left){drawLeft();}
    if(right){drawRight();}
+   if(button1){drawButton1();}
+   if(button2){drawButton2();}
    
    if(up && left){
      port.write("FWD "+(speed/10)+","+speed+";");
@@ -107,12 +130,14 @@
        case 'Q':
          speed += 2;
          speed = constrain(speed, 0, 100);
+         button2 = true;
          break;
          
        case 'e':
        case 'E':
          speed -= 2;
          speed = constrain(speed, 0, 100);
+         button1 = true;
          break;  
          
        case ' ':
@@ -146,6 +171,16 @@
        case 'd':
        case 'D':
          right = false;
+         break;
+         
+       case 'q':
+       case 'Q':
+         button2 = false;
+         break;
+         
+       case 'e':
+       case 'E':
+         button1 = false;
          break;
      } 
    }

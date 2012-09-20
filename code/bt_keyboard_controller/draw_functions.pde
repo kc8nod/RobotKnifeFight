@@ -18,3 +18,18 @@
  void drawCentered(){
    rect(boxX, boxY, boxSize, boxSize);
  }
+ 
+ void drawButton1(){
+   ellipse(button1X, button1Y, 2*boxSize, 2*boxSize);
+ }
+ 
+ void drawButton2(){
+   ellipse(button2X, button2Y, 2*boxSize, 2*boxSize);
+ }
+ 
+ void drawThrottle(){
+   rect(throttleX, (throttleY+(100-speed)), boxSize/2, boxSize/4);
+   rect(throttleX, height/2.0, boxSize/8, boxSize*3.0);
+ }
+ 
+ 
