@@ -15,7 +15,7 @@
  boolean left = false;
  boolean right = false;
  
- int speed = 0;
+ int speed = 100;
  
  void setup()  {
    size(200, 200);
@@ -86,26 +86,34 @@
        case 'w':
        case 'W':
          up = true;
-         speed = 100;
          break;
          
        case 'a':
        case 'A':
          left = true;
-         speed = 100;
          break;
          
        case 's':
        case 'S':
          down = true;
-         speed = 100;
          break;
          
        case 'd':
        case 'D':
          right = true;
-         speed = 100;
          break;
+       
+       case 'q':
+       case 'Q':
+         speed += 2;
+         speed = constrain(speed, 0, 100);
+         break;
+         
+       case 'e':
+       case 'E':
+         speed -= 2;
+         speed = constrain(speed, 0, 100);
+         break;  
          
        case ' ':
          up = down = left = right = false;
