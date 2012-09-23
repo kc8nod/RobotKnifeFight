@@ -29,8 +29,8 @@ Player Class
          DOWN_KEY = int('S');
          LEFT_KEY = int('A');
          RIGHT_KEY = int('D');
-         B1_KEY = int('E');
-         B2_KEY = int('Q');
+         B1_KEY = int('Q');
+         B2_KEY = int('E');
          break;
         
        case 2:
@@ -38,8 +38,8 @@ Player Class
          DOWN_KEY = int('K');
          LEFT_KEY = int('J');
          RIGHT_KEY = int('L');
-         B1_KEY = int('O');
-         B2_KEY = int('U');
+         B1_KEY = int('U');
+         B2_KEY = int('O');
          break;
         
        case 3:
@@ -47,8 +47,8 @@ Player Class
          DOWN_KEY = int('G');
          LEFT_KEY = int('F');
          RIGHT_KEY = int('H');
-         B1_KEY = int('Y');
-         B2_KEY = int('R');
+         B1_KEY = int('R');
+         B2_KEY = int('Y');
          break;
         
        case 4:
@@ -56,8 +56,8 @@ Player Class
          DOWN_KEY = int('5');
          LEFT_KEY = int('4');
          RIGHT_KEY = int('6');
-         B1_KEY = int('9');
-         B2_KEY = int('7');
+         B1_KEY = int('7');
+         B2_KEY = int('9');
          break;
     }
  }

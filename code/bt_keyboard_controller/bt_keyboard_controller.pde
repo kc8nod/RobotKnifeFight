@@ -24,8 +24,6 @@
    size(400, (200*maxPlayers));
    boxX = 100;
    boxY = 100;
-   boxSize = 20;
-   boxMargin = 3;
    button1X = 275;
    button1Y = 100;
    button2X = 340;

@@ -1,7 +1,14 @@
 ﻿// Robot Knife Fight drivable bot via Wiimote
 // Wiimote Sideways, by Matt Switlik
 WASD = Wiimote1.DPadSideways
-e = Wiimote1.One
-q = Wiimote1.Two
+q = Wiimote1.One
+e = Wiimote1.Two
+
+Key.J = Wiimote2.Up
+Key.L = Wiimote2.Down
+Key.K = Wiimote2.Left
+Key.I = Wiimote2.Right
+u = Wiimote2.One
+o = Wiimote2.Two
 
 
