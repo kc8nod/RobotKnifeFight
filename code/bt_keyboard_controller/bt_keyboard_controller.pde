@@ -17,6 +17,16 @@
  boolean serialSelected = false;
  boolean serialConnected= false;
  String[] listOfPorts;
+
+ final int STOP_ALL_BOTS = int(' '); 
+ final int PLAYER1_UP_KEY = int('W');
+ final int PLAYER1_DOWN_KEY = int('S');
+ final int PLAYER1_LEFT_KEY = int('A');
+ final int PLAYER1_RIGHT_KEY = int('D');
+ final int PLAYER1_B1_KEY = int('E');
+ final int PLAYER1_B2_KEY = int('Q');
+ 
+ boolean stopAll = false;
  
  boolean up = false;
  boolean down = false;
@@ -24,7 +34,6 @@
  boolean right = false;
  boolean button1 = false;
  boolean button2 = false;
- 
  int speed = 100;
  
  void printSerialData(){
@@ -51,21 +60,16 @@
    rectMode(RADIUS); 
    listOfPorts = Serial.list();
    println(listOfPorts);
-   text(listOfPorts[0], 10, 30);
    println("Input serial port [0 - "+(listOfPorts.length-1)+"]:");
    
  }
  
- void draw() 
- {
-   background(0);
-   
-   //Select an available Serial Port.
-   if(serialSelected == false && serialConnected == false){
+ boolean selectSerialPort(){
+   if(serialSelected == false){
      text("Select serial port [0 - "+(listOfPorts.length-1)+"]:", 10, 15);
      for(int i=0; i < listOfPorts.length; i++){
-       text("["+i+"]", 20, ((i*15)+30));
-       text(listOfPorts[i], 40, ((i*15)+30));
+       text("["+i+"]", 20, ((i*15)+30), 1);
+       text(listOfPorts[i], 40, ((i*15)+30), 1);
      }
      
      if(keyPressed){
@@ -75,43 +79,46 @@
          serialSelected = true;
        }
      }
+   }
+   return serialSelected;
+ }
+ 
+ void draw() 
+ {
+   background(0);
+   
+   //Select an available Serial Port.
+   if(!selectSerialPort()){
      return;
    }
    
    //Connect to the Selected Serial Port.
    if(serialSelected == true && serialConnected == false){
-     port = new Serial(this, Serial.list()[COM_INDEX], 115200);
+     port = new Serial(this, listOfPorts[COM_INDEX], 115200);
      serialConnected = true;
      print("Connected to:");
-     println(Serial.list()[COM_INDEX]);
+     println(listOfPorts[COM_INDEX]);
    }
    
+   //Get any new serial data and print it.
    printSerialData();
-  
-   
       
    // Draw the shapes
-   stroke(100);
-   fill(100);
-   drawCentered();
-   drawUp();
-   drawDown();
-   drawRight();
-   drawLeft();
-   drawButton1();
-   drawButton2();
+   drawCentered(stopAll);
+   drawUp(up);
+   drawDown(down);
+   drawRight(right);
+   drawLeft(left);
+   drawButton1(button1);
+   drawButton2(button2);
    drawThrottle();
+   drawPort();
    
-   stroke(255);
-   fill(255); 
-   if(up){drawUp();}
-   if(down){drawDown();}
-   if(left){drawLeft();}
-   if(right){drawRight();}
-   if(button1){drawButton1();}
-   if(button2){drawButton2();}
-   
-   if(up && left){
+   //Send command to port(s)
+   if(stopAll){
+     speed = 0;
+     port.write("STOP;");
+   }else if(up && left){
      port.write("FWD "+(speed/10)+","+speed+";");
    }else if(up && right){
      port.write("FWD "+speed+","+(speed/10)+";");
@@ -135,47 +142,34 @@
 
  void keyPressed() {
    if(keyCode > 0){
-     //println("pressed: "+ keyCode +" = '"+ key +"'");
-     switch(key){
-       case 'w':
-       case 'W':
-         up = true;
-         break;
-         
-       case 'a':
-       case 'A':
-         left = true;
-         break;
-         
-       case 's':
-       case 'S':
-         down = true;
-         break;
-         
-       case 'd':
-       case 'D':
-         right = true;
-         break;
+     println("pressed: "+ keyCode +" = '"+ key +"'");
+     if(keyCode == PLAYER1_UP_KEY){
+       up = true;
        
-       case 'q':
-       case 'Q':
-         speed += 2;
-         speed = constrain(speed, 0, 100);
-         button2 = true;
-         break;
-         
-       case 'e':
-       case 'E':
-         speed -= 2;
-         speed = constrain(speed, 0, 100);
-         button1 = true;
-         break;  
-         
-       case ' ':
-         up = down = left = right = false;
-         speed = 0;
-         break;
-     }     
+     }else if(keyCode == PLAYER1_LEFT_KEY){
+       left = true;
+       
+     }else if(keyCode == PLAYER1_DOWN_KEY){
+       down = true;
+       
+     }else if(keyCode == PLAYER1_RIGHT_KEY){
+       right = true;
+       
+     }else if(keyCode == PLAYER1_B2_KEY){
+       speed += 2;
+       speed = constrain(speed, 0, 100);
+       button2 = true;
+       
+     }else if(keyCode == PLAYER1_B1_KEY){
+       speed -= 2;
+       speed = constrain(speed, 0, 100);
+       button1 = true;
+       
+     }else if(keyCode == STOP_ALL_BOTS){
+       up = down = left = right = false;
+       stopAll = true;
+       speed = 0;  
+     }
    }
  }
  
@@ -183,36 +177,27 @@
  void keyReleased() {
    if(keyCode > 0){
      //println("released: "+ keyCode +" = '"+ key +"'");
-     switch(key){
-       case 'w':
-       case 'W':
-         up = false;
-         break;
+     if(keyCode == PLAYER1_UP_KEY){
+       up = false;
+       
+     }else if(keyCode == PLAYER1_LEFT_KEY){
+       left = false;
          
-       case 'a':
-       case 'A':
-         left = false;
-         break;
+     }else if(keyCode == PLAYER1_DOWN_KEY){
+       down = false;
          
-       case 's':
-       case 'S':
-         down = false;
-         break;
+     }else if(keyCode == PLAYER1_RIGHT_KEY){
+       right = false;
          
-       case 'd':
-       case 'D':
-         right = false;
-         break;
-         
-       case 'q':
-       case 'Q':
-         button2 = false;
-         break;
-         
-       case 'e':
-       case 'E':
-         button1 = false;
-         break;
-     } 
+     }else if(keyCode == PLAYER1_B2_KEY){
+       button2 = false;
+       
+     }else if(keyCode == PLAYER1_B1_KEY){
+       button1 = false;
+       
+     }else if(keyCode == STOP_ALL_BOTS){
+       stopAll = false;
+       speed = 0;  
+     }
    }
  }
