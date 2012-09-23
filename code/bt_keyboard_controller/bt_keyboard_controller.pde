@@ -19,13 +19,6 @@
  String[] listOfPorts;
 
  final int STOP_ALL_BOTS = int(' '); 
- final int PLAYER1_UP_KEY = int('W');
- final int PLAYER1_DOWN_KEY = int('S');
- final int PLAYER1_LEFT_KEY = int('A');
- final int PLAYER1_RIGHT_KEY = int('D');
- final int PLAYER1_B1_KEY = int('E');
- final int PLAYER1_B2_KEY = int('Q');
- 
  boolean stopAll = false;
  
  boolean up = false;
@@ -142,7 +135,7 @@
 
  void keyPressed() {
    if(keyCode > 0){
-     println("pressed: "+ keyCode +" = '"+ key +"'");
+     //println("pressed: "+ keyCode +" = '"+ key +"'");
      if(keyCode == PLAYER1_UP_KEY){
        up = true;
        
