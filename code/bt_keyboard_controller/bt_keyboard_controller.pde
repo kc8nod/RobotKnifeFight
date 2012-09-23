@@ -1,167 +1,129 @@
  import processing.serial.*; 
  
+ int typedKeyCode = 0; 
+ 
  float boxX;
  float boxY;
  int boxSize;
  int boxMargin;
  
- float button1X;
- float button1Y;
- float button2X;
- float button2Y;
- float throttleX;
- float throttleY;
- 
- Serial port; 
- int COM_INDEX = 0;
- boolean serialSelected = false;
- boolean serialConnected= false;
  String[] listOfPorts;
 
  final int STOP_ALL_BOTS = int(' '); 
  boolean stopAll = false;
  
- boolean up = false;
- boolean down = false;
- boolean left = false;
- boolean right = false;
- boolean button1 = false;
- boolean button2 = false;
- int speed = 100;
+ boolean playersSelected = false;
+ int numberOfPlayers = 0;
+ final int maxPlayers = 2;
  
- void printSerialData(){
-   while (port.available() > 0) {
-     String inBuffer = port.readString();   
-     if (inBuffer != null) {
-       println(inBuffer);
-     }
-   }
- }
+ Player[] player = new Player[maxPlayers];
+  
+ float button1X, button1Y, button2X, button2Y, throttleX, throttleY;
  
  void setup()  {
-   size(400, 200);
-   boxX = width/4.0;
-   boxY = height/2.0;
+   size(400, (200*maxPlayers));
+   boxX = 100;
+   boxY = 100;
    boxSize = 20;
    boxMargin = 3;
-   button1X = 2.75*width/4.0;
-   button1Y = height/2.0;
-   button2X = 3.4*width/4.0;
-   button2Y = height/2.0;
-   throttleX = width/2.0;
-   throttleY = height/4.0;
+   button1X = 275;
+   button1Y = 100;
+   button2X = 340;
+   button2Y = 100;
+   throttleX = 200;
+   throttleY = 100;
    rectMode(RADIUS); 
-   listOfPorts = Serial.list();
-   println(listOfPorts);
-   println("Input serial port [0 - "+(listOfPorts.length-1)+"]:");
    
- }
- 
- boolean selectSerialPort(){
-   if(serialSelected == false){
-     text("Select serial port [0 - "+(listOfPorts.length-1)+"]:", 10, 15);
-     for(int i=0; i < listOfPorts.length; i++){
-       text("["+i+"]", 20, ((i*15)+30), 1);
-       text(listOfPorts[i], 40, ((i*15)+30), 1);
-     }
-     
-     if(keyPressed){
-       COM_INDEX = int(key)-48;
-       if(0 <= COM_INDEX && COM_INDEX < listOfPorts.length){
-         println(COM_INDEX);
-         serialSelected = true;
-       }
-     }
+   for(int i=0; i<maxPlayers; i++){
+     player[i] = new Player(this, i+1);
    }
-   return serialSelected;
  }
  
- void draw() 
- {
+ 
+ void draw(){
    background(0);
    
-   //Select an available Serial Port.
-   if(!selectSerialPort()){
+   //Select the number of Players
+   if(!selectPlayers()){
      return;
    }
    
-   //Connect to the Selected Serial Port.
-   if(serialSelected == true && serialConnected == false){
-     port = new Serial(this, listOfPorts[COM_INDEX], 115200);
-     serialConnected = true;
-     print("Connected to:");
-     println(listOfPorts[COM_INDEX]);
+   for(int i=0; i<numberOfPlayers; i++){
+     drawPlayerLabel(i);
+     
+     //If not connected, select an available Serial Port and connect to it.
+     if(!player[i].serialPortConnected()){
+       return;
+     }
+     
+     //Get any new serial data and print it.
+     player[i].printSerialData();
+     
+     // Draw the shapes
+     drawCentered(i);
+     drawUp(i);
+     drawDown(i);
+     drawRight(i);
+     drawLeft(i);
+     drawButton1(i);
+     drawButton2(i);
+     drawThrottle(i);
+     drawPort(i);
+     
+     //Send command to port(s)
+     player[i].sendCommandToPort();
    }
-   
-   //Get any new serial data and print it.
-   printSerialData();
-      
-   // Draw the shapes
-   drawCentered(stopAll);
-   drawUp(up);
-   drawDown(down);
-   drawRight(right);
-   drawLeft(left);
-   drawButton1(button1);
-   drawButton2(button2);
-   drawThrottle();
-   drawPort();
-   
-   //Send command to port(s)
-   if(stopAll){
-     speed = 0;
-     port.write("STOP;");
-   }else if(up && left){
-     port.write("FWD "+(speed/10)+","+speed+";");
-   }else if(up && right){
-     port.write("FWD "+speed+","+(speed/10)+";");
-   }else if(down && left){
-     port.write("REV "+(speed/10)+","+speed+";");
-   }else if(down && right){
-     port.write("REV "+speed+","+(speed/10)+";");
-   }else if(up){
-     port.write("FWD "+speed+";");
-   }else if(down){
-     port.write("REV "+speed+";");
-   }else if(left){
-     port.write("LEFT "+speed+";");
-   }else if(right){
-     port.write("RIGHT "+speed+";");
-   }else{
-     port.write("STOP;");
+ } 
+ 
+ 
+ boolean selectPlayers(){
+   if(playersSelected == false){
+     text("Select Number of Players: [1-"+maxPlayers+"]", 10, 15);
+     if(typedKeyCode > 0){
+       println("Select Number of Players: [1-"+maxPlayers+"]");
+       numberOfPlayers = int(key)-48;
+       if(1 <= numberOfPlayers && numberOfPlayers <= maxPlayers){
+         println(numberOfPlayers + " Players");
+         playersSelected = true;
+       }
+       typedKeyCode = 0; //reset typed keyCode
+     }
    }
+   return playersSelected;
  }
-
-
- void keyPressed() {
+ 
+ 
+  void keyPressed() {
    if(keyCode > 0){
-     //println("pressed: "+ keyCode +" = '"+ key +"'");
-     if(keyCode == PLAYER1_UP_KEY){
-       up = true;
-       
-     }else if(keyCode == PLAYER1_LEFT_KEY){
-       left = true;
-       
-     }else if(keyCode == PLAYER1_DOWN_KEY){
-       down = true;
-       
-     }else if(keyCode == PLAYER1_RIGHT_KEY){
-       right = true;
-       
-     }else if(keyCode == PLAYER1_B2_KEY){
-       speed += 2;
-       speed = constrain(speed, 0, 100);
-       button2 = true;
-       
-     }else if(keyCode == PLAYER1_B1_KEY){
-       speed -= 2;
-       speed = constrain(speed, 0, 100);
-       button1 = true;
-       
-     }else if(keyCode == STOP_ALL_BOTS){
-       up = down = left = right = false;
-       stopAll = true;
-       speed = 0;  
+     println("pressed: "+ keyCode +" = '"+ key +"'");
+     for(int i=0; i<numberOfPlayers; i++){
+       if(keyCode == player[i].UP_KEY){
+         player[i].up = true;
+         
+       }else if(keyCode == player[i].LEFT_KEY){
+         player[i].left = true;
+         
+       }else if(keyCode == player[i].DOWN_KEY){
+         player[i].down = true;
+         
+       }else if(keyCode == player[i].RIGHT_KEY){
+         player[i].right = true;
+         
+       }else if(keyCode == player[i].B2_KEY){
+         player[i].speed += 2;
+         player[i].speed = constrain(player[i].speed, 0, 100);
+         player[i].button2 = true;
+         
+       }else if(keyCode == player[i].B1_KEY){
+         player[i].speed -= 2;
+         player[i].speed = constrain(player[i].speed, 0, 100);
+         player[i].button1 = true;
+         
+       }else if(keyCode == STOP_ALL_BOTS){
+         player[i].up = player[i].down = player[i].left = player[i].right = false;
+         stopAll = true;
+         player[i].speed = 0;  
+       }
      }
    }
  }
@@ -169,28 +131,31 @@
  
  void keyReleased() {
    if(keyCode > 0){
-     //println("released: "+ keyCode +" = '"+ key +"'");
-     if(keyCode == PLAYER1_UP_KEY){
-       up = false;
-       
-     }else if(keyCode == PLAYER1_LEFT_KEY){
-       left = false;
+     println("released: "+ keyCode +" = '"+ key +"'");
+     for(int i=0; i<numberOfPlayers; i++){
+       if(keyCode == player[i].UP_KEY){
+         player[i].up = false;
          
-     }else if(keyCode == PLAYER1_DOWN_KEY){
-       down = false;
+       }else if(keyCode == player[i].LEFT_KEY){
+         player[i].left = false;
+           
+       }else if(keyCode == player[i].DOWN_KEY){
+         player[i].down = false;
+           
+       }else if(keyCode == player[i].RIGHT_KEY){
+         player[i].right = false;
+           
+       }else if(keyCode == player[i].B2_KEY){
+         player[i].button2 = false;
          
-     }else if(keyCode == PLAYER1_RIGHT_KEY){
-       right = false;
+       }else if(keyCode == player[i].B1_KEY){
+         player[i].button1 = false;
          
-     }else if(keyCode == PLAYER1_B2_KEY){
-       button2 = false;
-       
-     }else if(keyCode == PLAYER1_B1_KEY){
-       button1 = false;
-       
-     }else if(keyCode == STOP_ALL_BOTS){
-       stopAll = false;
-       speed = 0;  
+       }else if(keyCode == STOP_ALL_BOTS){
+         stopAll = false;
+         player[i].speed = 0;  
+       }
      }
+     typedKeyCode = keyCode; 
    }
  }
