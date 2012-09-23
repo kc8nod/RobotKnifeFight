@@ -28,8 +28,12 @@
  }
  
  void drawThrottle(){
-   rect(throttleX, (throttleY+(100-speed)), boxSize/2, boxSize/4);
+   rect(throttleX, (throttleY+(100-speed)), boxSize/1.5, boxSize/3);
    rect(throttleX, height/2.0, boxSize/8, boxSize*3.0);
+   stroke(255);
+   fill(255);
+   textAlign(CENTER);
+   text(speed, throttleX, (throttleY+(100-speed)+6),1 );
  }
  
  

@@ -13,8 +13,10 @@
  float throttleY;
  
  Serial port; 
- 
- int val;      // Data received from the serial port
+ int COM_INDEX = 0;
+ boolean serialSelected = false;
+ boolean serialConnected= false;
+ String[] listOfPorts;
  
  boolean up = false;
  boolean down = false;
@@ -24,6 +26,15 @@
  boolean button2 = false;
  
  int speed = 100;
+ 
+ void printSerialData(){
+   while (port.available() > 0) {
+     String inBuffer = port.readString();   
+     if (inBuffer != null) {
+       println(inBuffer);
+     }
+   }
+ }
  
  void setup()  {
    size(400, 200);
@@ -38,26 +49,46 @@
    throttleX = width/2.0;
    throttleY = height/4.0;
    rectMode(RADIUS); 
+   listOfPorts = Serial.list();
+   println(listOfPorts);
+   text(listOfPorts[0], 10, 30);
+   println("Input serial port [0 - "+(listOfPorts.length-1)+"]:");
    
-   println(Serial.list()); 
- 
-   int COM_INDEX = 0;
-   //if(Serial.list()[COM_INDEX]){
-     port = new Serial(this, Serial.list()[COM_INDEX], 115200);
-   //}
-   print("Connected to:");
-   println(Serial.list()[COM_INDEX]);
  }
  
  void draw() 
  {
-   while (port.available() > 0) {
-     String inBuffer = port.readString();   
-     if (inBuffer != null) {
-       println(inBuffer);
-     }
-   }
    background(0);
+   
+   //Select an available Serial Port.
+   if(serialSelected == false && serialConnected == false){
+     text("Select serial port [0 - "+(listOfPorts.length-1)+"]:", 10, 15);
+     for(int i=0; i < listOfPorts.length; i++){
+       text("["+i+"]", 20, ((i*15)+30));
+       text(listOfPorts[i], 40, ((i*15)+30));
+     }
+     
+     if(keyPressed){
+       COM_INDEX = int(key)-48;
+       if(0 <= COM_INDEX && COM_INDEX < listOfPorts.length){
+         println(COM_INDEX);
+         serialSelected = true;
+       }
+     }
+     return;
+   }
+   
+   //Connect to the Selected Serial Port.
+   if(serialSelected == true && serialConnected == false){
+     port = new Serial(this, Serial.list()[COM_INDEX], 115200);
+     serialConnected = true;
+     print("Connected to:");
+     println(Serial.list()[COM_INDEX]);
+   }
+   
+   printSerialData();
+  
+   
       
    // Draw the shapes
    stroke(100);
