@@ -9,6 +9,7 @@ import re
 xy_pattern = re.compile('(\d+(\.\d*)?|\.\d+),(\d+(\.\d*)?|\.\d+)')
 
 if __name__ == '__main__':
+
     tracking = tuio.Tracking()
   
     arena_corner1 = arena.ArenaPosition(0.0, 0.0, 0.0)
@@ -25,7 +26,8 @@ if __name__ == '__main__':
         print "Put exactly one glyph in the camera's field of view."
 
         while True:
-            tracking.update()
+            while tracking.update():
+                pass
             objs = list(tracking.objects())
             if len(objs) == 1:
                 break
@@ -34,7 +36,9 @@ if __name__ == '__main__':
         print "Move the glyph to the 0,0 point of the arena..."
         raw_input("then press return to continue.")
      
-        tracking.update()
+        while tracking.update():
+                pass
+                
         camera_pos1 = arena.CameraPosition()
         obj = tracking.objects().next()
         print "debug: raw tuio object:", obj
@@ -57,7 +61,9 @@ if __name__ == '__main__':
             if len(objs) == 1:
                 break
         
-        tracking.update()
+        while tracking.update():
+            pass
+            
         camera_pos2 = arena.CameraPosition()
         obj = tracking.objects().next()
         print "debug: raw tuio object:", obj
