@@ -10,6 +10,9 @@ unsigned long timeLastSerialInput = 0;
 
 ServoTimer2 LeftDrive, RightDrive;
 
+boolean bump_L = false;
+boolean bump_R = false;
+
 #define LEFT_FWD 2000
 #define LEFT_STOP 1500
 #define LEFT_REV 1000
@@ -45,7 +48,7 @@ void setup() {
   
   serialInputString.reserve(16);
   Serial.begin(115200);
-  Serial.println("bt_drivable_bot: reset");
+  Serial.println("{\"msg\":\"bt_drivable_bot reset\"}");
 }
 
 
@@ -61,6 +64,10 @@ void loop() {
     speed_L = LEFT_STOP;
     speed_R = RIGHT_STOP;
   }
+  
+  //Read Bump Switches
+  bump_R = digitalRead(BUMP_SWITCH_RIGHT_PIN);
+  bump_L = digitalRead(BUMP_SWITCH_LEFT_PIN);
   
   //Update Servo positions  
   if(now - timeLastServoUp > 15){  //limit servo updating to every 15ms at most
@@ -78,17 +85,23 @@ void loop() {
 output important variables to the Serial port
 ------------------------------------------------------------------------------*/
 void outputStatus(){
-  Serial.print("now:");
+  Serial.print("{");
+  Serial.print("\"now\":");
   Serial.print(now);
-  Serial.print(", L:");
+  Serial.print(", \"speed_L\":");
   Serial.print(speed_L);
-  Serial.print(", R:");
+  Serial.print(", \"speed_R\":");
   Serial.print(speed_R);
+  Serial.print(", \"bump_L\":");
+  Serial.print(bump_L);
+  Serial.print(", \"bump_R\":");
+  Serial.print(bump_R);
   //Serial.print(", vw_rx_active:");
   //Serial.print(vw_rx_active);
   //Serial.print(", radio_count:");
   //Serial.println(message_count);
   //Serial.println(radio);
+  Serial.print("}");
 }
 
 
@@ -96,7 +109,6 @@ void setLeftSpeed(boolean forward, int throttle){
   if(0 <= throttle && throttle <= 100){
     int x = (forward) ? LEFT_FWD : LEFT_REV;
     speed_L = (x - LEFT_STOP) * float(throttle)/100 + LEFT_STOP;
-    //Serial.println(speed_L);
   }else{
     error_bad_param(throttle);
   }
@@ -107,15 +119,14 @@ void setRightSpeed(boolean forward, int throttle){
   if(0 <= throttle && throttle <= 100){
     int x = (forward) ? RIGHT_FWD : RIGHT_REV;
     speed_R = (x - RIGHT_STOP) * float(throttle)/100 + RIGHT_STOP;
-    //Serial.println(speed_R);
   }else{
     error_bad_param(throttle);
   }
 }
 
 void error_bad_param(int param){
-  Serial.print(" ERROR BAD PARAM: \"");
+  Serial.print("{\"msg\":\"ERROR BAD PARAM ");
   Serial.print(param);
-  Serial.println("\"");
+  Serial.println("\"}");
 }
 
