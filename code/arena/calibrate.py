@@ -9,6 +9,7 @@ import re
 xy_pattern = re.compile('(\d+(\.\d*)?|\.\d+),(\d+(\.\d*)?|\.\d+)')
 
 if __name__ == '__main__':
+
     tracking = tuio.Tracking()
 
     
@@ -38,7 +39,8 @@ if __name__ == '__main__':
 
         tracking.start()
         while True:
-            tracking.update()
+            while tracking.update():
+                pass
             objs = list(tracking.objects())
             if len(objs) == 1:
                 break
@@ -49,8 +51,7 @@ if __name__ == '__main__':
         print      
         print "Move the glyph to the 0,0 point of the arena..."
         raw_input("then press return to continue.")
-     
-        
+
         tracking.start()
         while True:
             tracking.update()

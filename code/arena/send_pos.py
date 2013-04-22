@@ -20,8 +20,11 @@ port.write("start\n")
 tracking = tuio.Tracking()
 
 try:
-    while 1:
-        tracking.update()
+    while True:
+    
+        while tracking.update():
+            pass
+            
         for obj in tracking.objects():
             #print obj
             camera_pos = arena.CameraPosition()
