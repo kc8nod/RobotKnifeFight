@@ -96,10 +96,10 @@ class Tracking(object):
         """
         try:
             self.manager.handle(self.socket.recv(1024))
-
+            return True
         except socket.error:
            
-            pass
+            return False
 
     def callback(self, *incoming):
         """
