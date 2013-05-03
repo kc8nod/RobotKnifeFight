@@ -7,7 +7,7 @@ from math import sin, cos, radians
 # a robot's main fiducial id is element 0 .
 # the robot's death fiducial id is element 1 .
 # the robot's alive status is elemt 2. (0=dead, 1=alive)
-robot_ids = [[0,1,1],[2,3,1],[4,5,1],[6,7,1]]
+robot_ids = [[0,4,1],[1,5,1],[2,6,1],[3,7,1]]
 
 class Position(object):
     def __init__(self, x=0, y=0, a=0, id=None):
@@ -31,20 +31,20 @@ class Position(object):
         
 class CameraPosition(Position):
 
-    camera_x_max = 1.0
-    camera_y_max = 1.0
+    camera_x_max = 1280
+    camera_y_max = 720
 
     def set_tuio(self, src):
         self.sessionid  = src.sessionid
         self.id         = src.id
-        self.xpos       = src.xpos * self.camera_x_max
-        self.ypos       = (1.0 - src.ypos) * self.camera_y_max
-        self.angle      = radians(- src.angle - 90)
+        self.xpos       = src.xpos * self.camera_x_max  #scale position by resolution
+        self.ypos       = self.camera_y_max - (src.ypos * self.camera_y_max) #scale position by resolution, reverse positive direction
+        self.angle      = radians(360-(src.angle+90)) #rotate 90 degrees and reverse the positive direction
         self.xmot       = src.xmot * self.camera_x_max
-        self.ymot       = (1.0 - src.ymot) * self.camera_y_max 
-        self.rot_vector = -src.rot_vector 
+        self.ymot       = self.camera_y_max - (src.ymot * self.camera_y_max) 
+        self.rot_vector = src.rot_vector 
         self.mot_accel  = src.mot_accel 
-        self.rot_accel  = -src.rot_accel 
+        self.rot_accel  = src.rot_accel 
 
 
 
@@ -106,7 +106,7 @@ def write_config(filename='arena_config.json'):
                 'y_offset'     : ArenaPosition.y_offset,
                 'angle_offset' : ArenaPosition.angle_offset,
                 'camera_x_max' : CameraPosition.camera_x_max,
-                'camera_y_max' : CameraPosition.camera_y_max,
+                'camera_y_max' : CameraPosition.camera_y_max
              }
 
     with open(filename, 'w') as fh:
