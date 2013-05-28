@@ -45,6 +45,13 @@ def findDiffs(pt0, pt1):
     y = pt1[1]-pt0[1]
     return (x,y)
 
+def drawBorder(img, symbol, color, thickness):
+    cv2.line(img, symbol[0], symbol[1], color, thickness)
+    cv2.line(img, symbol[1], symbol[2], color, thickness)
+    cv2.line(img, symbol[2], symbol[3], color, thickness)
+    cv2.line(img, symbol[3], symbol[0], color, thickness)
+            
+
 ###############
 ## SETUP
 ###############
@@ -90,6 +97,10 @@ displayMenu()
 arenaId = 0
 arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
 
+botLocations = [(0,0), (0,0), (0,0), (0,0)]
+botHeading = [0, 0, 0, 0]
+botAlive = [False, False, False, False]
+
 ###############
 ## LOOP
 ###############
@@ -117,7 +128,7 @@ while True:
         #Arena Corners
         match = arena_pattern.match(symbol.data)
         if match:
-            cv2.rectangle(outputImg, symbol.location[0], symbol.location[2], colorCode[0], 2)
+            drawBorder(outputImg, symbol.location, colorCode[0], 2)
             pt = (symbol.location[1][0]+3, symbol.location[1][1]-30)            
             cv2.putText(outputImg, symbol.data, pt, cv2.FONT_HERSHEY_PLAIN, 0.8, colorCode[0], 1)
             if int(match.group(1)) == arenaId: #found a corner for the arena
@@ -126,34 +137,35 @@ while True:
         #Bot Symbol
         match = bot_pattern.match(symbol.data)
         if match:
-            cv2.line(outputImg, symbol.location[0], symbol.location[1], colorCode[1], 2)
-            cv2.line(outputImg, symbol.location[1], symbol.location[2], colorCode[1], 2)
-            cv2.line(outputImg, symbol.location[2], symbol.location[3], colorCode[1], 2)
-            cv2.line(outputImg, symbol.location[3], symbol.location[0], colorCode[1], 2)
+            drawBorder(outputImg, symbol.location, colorCode[1], 2)      
             pt = findCenter(symbol.location)
+            botId = int(match.group(1))
+            botLocations[botId] = pt
             pt = (pt[0]-20, pt[1]+10)            
             cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[1], 2)
-            
             ptdiff = findDiffs(symbol.location[1], symbol.location[0])
             pt0 = findDiffPt(symbol.location[0], symbol.location[3])
             pt1 = (pt0[0]+int(ptdiff[0]*1.7), pt0[1]+int(ptdiff[1]*1.7))
             cv2.line(outputImg, pt0, pt1, colorCode[1], 2)
         #Bot Dead
-        #match = dead_pattern.match(symbol.data)
-        #if match:
-        #    print match.group(1)
+        match = dead_pattern.match(symbol.data)
+        if match:
+            drawBorder(outputImg, symbol.location, colorCode[2], 2)
+            pt = findCenter(symbol.location)
+            pt = (pt[0]-20, pt[1]+10)            
+            cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[2], 2)
+            
 
     if verboseScan:
         print
 
     #Draw Objects
     #Arena
-    cv2.line(outputImg, arenaCorners[0], arenaCorners[1], colorCode[0], 1)
-    cv2.line(outputImg, arenaCorners[1], arenaCorners[2], colorCode[0], 1)
-    cv2.line(outputImg, arenaCorners[2], arenaCorners[3], colorCode[0], 1)
-    cv2.line(outputImg, arenaCorners[3], arenaCorners[0], colorCode[0], 1)
+    drawBorder(outputImg, arenaCorners, colorCode[0], 1)    
 
-    #Draw output       
+    #Last Know Bot Locations
+
+    #Display Output       
     if displayMode == 0: #display unmodified
         cv2.imshow("ArenaScanner", origImg)
 
@@ -161,7 +173,7 @@ while True:
         cv2.imshow("ArenaScanner", outputImg)
 
     
-    #process key presses        
+    #Process key presses        
     key = cv2.waitKey(10)        
     if key>0:
         if key == 27:  #esc
