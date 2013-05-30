@@ -90,14 +90,15 @@ scanner = zbar.ImageScanner()
 scanner.set_config(0, zbar.Config.ENABLE, 0) #disable all symbols
 scanner.set_config(zbar.Symbol.QRCODE, zbar.Config.ENABLE, 1) #enable QR codes
 
-colorCode = ((255,0,0), (0,240,0), (0,0,255), (0,210,210)) #Blue, Green, Red, Yellow
+colorCode = ((255,0,0), (0,240,0), (0,0,255), (29,227,245)) #Blue, Green, Red, Yellow
 
 displayMenu()
 
 arenaId = 0
 arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
 
-botLocations = [(0,0), (0,0), (0,0), (0,0)]
+botLocAbs = [(0,0), (0,0), (0,0), (0,0)]
+botLocArena = [(0,0), (0,0), (0,0), (0,0)]
 botHeading = [0, 0, 0, 0]
 botAlive = [False, False, False, False]
 
@@ -138,10 +139,20 @@ while True:
         #Bot Symbol
         match = bot_pattern.match(symbol.data)
         if match:
-            drawBorder(outputImg, symbol.location, colorCode[1], 2)      
             pt = findCenter(symbol.location)
             botId = int(match.group(1))
-            botLocations[botId] = pt #update the bots location
+            botLocAbs[botId] = pt #update the bots location
+
+            #update the bots heading
+            x = symbol.location[3][0] - symbol.location[0][0]
+            y = symbol.location[3][1] - symbol.location[0][1]
+            h = math.degrees((math.pi/2) - math.atan2(y,x))
+            h = int(math.floor((h+11.25)/22.5))
+            if h < 0: h = 16 + h
+            botHeading[botId] = h
+
+            #draw the borders and text for bot symbol
+            drawBorder(outputImg, symbol.location, colorCode[1], 2)                  
             pt = (pt[0]-20, pt[1]+10)            
             cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[1], 2)
             ptdiff = findDiffs(symbol.location[1], symbol.location[0])
@@ -165,10 +176,15 @@ while True:
     drawBorder(outputImg, arenaCorners, colorCode[0], 2)    
 
     #Last Know Bot Locations
-    for idx,pt in enumerate(botLocations):
+    for idx,pt in enumerate(botLocAbs):
         cv2.circle(outputImg, pt, 30, colorCode[3], 2)
-        pt = (pt[0]-8, pt[1]+8)
-        cv2.putText(outputImg, str(idx), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[3], 2)
+        textPt = (pt[0]-8, pt[1]+8)
+        cv2.putText(outputImg, str(idx), textPt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[3], 2)
+        ang = botHeading[idx]*math.pi/8
+        pt0 = ((pt[0]+int(math.cos(ang)*30)), (pt[1]-int(math.sin(ang)*30)))
+        pt1 = ((pt[0]+int(math.cos(ang)*30*4)), (pt[1]-int(math.sin(ang)*30*4)))
+        cv2.line(outputImg, pt0, pt1, colorCode[3], 2)
+
 
     #Display Output       
     if displayMode == 0: #display unmodified
