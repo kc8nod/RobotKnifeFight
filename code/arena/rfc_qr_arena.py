@@ -62,6 +62,8 @@ arena_pattern = re.compile('A(\d{3})\-C(\d)')
 dead_pattern = re.compile('DEAD(\d{3})')
 
 cameraindex = 0
+resolutionindex = 0
+resolutions = [(640,480),(1280,720),(1920,1080)]
 
 cv2.namedWindow("ArenaScanner")
 
@@ -77,14 +79,25 @@ displayPrint("Enter the camera's index")
 in_str = raw_input("defaults [%1d] " % cameraindex)
 match = index_pattern.match(in_str)
 if match:
-    print match.group(0)
+    print "using "+match.group(0)
     cameraindex = int(match.group(0))
+else:
+    print "using default"
+
+print("Enter the camera's resolution ")
+for idx,(x,y) in enumerate(resolutions):
+    print "[{}] {}x{}".format(idx,x,y)
+in_str = raw_input("defaults [%1d] " % resolutionindex)
+match = index_pattern.match(in_str)
+if match:
+    print "using "+match.group(0)
+    resolutionindex = int(match.group(0))
 else:
     print "using default"
     
 cap = cv2.VideoCapture(cameraindex)
-cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(CV_CAP_PROP_FRAME_WIDTH, resolutions[resolutionindex][0])
+cap.set(CV_CAP_PROP_FRAME_HEIGHT, resolutions[resolutionindex][1])
   
 scanner = zbar.ImageScanner()
 scanner.set_config(0, zbar.Config.ENABLE, 0) #disable all symbols
@@ -114,11 +127,14 @@ while True:
 
     #Apply image transformations
     modImg = cv2.cvtColor(origImg, cv2.COLOR_BGR2GRAY) #convert to grayscale
-    outputImg = cv2.cvtColor(modImg, cv2.COLOR_GRAY2BGR)
-
-    #Scan for QR codes
     width = size(modImg, 1)
     height = size(modImg, 0)
+    if displayMode == 2:
+        #outputImg = cv.CreateImage((width,height), cv.IPL_DEPTH_32S,1)
+        outputImg = zeros((height,width,3), uint8)
+    else:
+        outputImg = cv2.cvtColor(modImg, cv2.COLOR_GRAY2BGR)
+    #Scan for QR codes
     raw = modImg.tostring()
     image = zbar.Image(width, height, 'Y800', raw)
     scanner.scan(image)
@@ -151,7 +167,7 @@ while True:
             if h < 0: h = 16 + h
             botHeading[botId] = h
 
-            #draw the borders and text for bot symbol
+            #draw the borders, heading, and text for bot symbol
             drawBorder(outputImg, symbol.location, colorCode[1], 2)                  
             pt = (pt[0]-20, pt[1]+10)            
             cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[1], 2)
@@ -187,13 +203,15 @@ while True:
 
 
     #Display Output       
-    if displayMode == 0: #display unmodified
+    if displayMode == 0: #display source image
         cv2.imshow("ArenaScanner", origImg)
 
-    elif displayMode == 1: #display modified
+    elif displayMode == 1: #display source with data overlay
         cv2.imshow("ArenaScanner", outputImg)
 
-    
+    elif displayMode == 2: #display only data overlay
+        cv2.imshow("ArenaScanner", outputImg)
+
     #Process key presses        
     key = cv2.waitKey(10)        
     if key>0:
@@ -209,7 +227,7 @@ while True:
 
         elif chr(key) == 'd': #d key
             displayMode += 1
-            if displayMode > 1:
+            if displayMode > 2:
                 displayMode = 0
             displayPrint("displayMode:",displayMode)
 
