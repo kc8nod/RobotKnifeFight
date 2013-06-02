@@ -103,7 +103,7 @@ scanner = zbar.ImageScanner()
 scanner.set_config(0, zbar.Config.ENABLE, 0) #disable all symbols
 scanner.set_config(zbar.Symbol.QRCODE, zbar.Config.ENABLE, 1) #enable QR codes
 
-colorCode = ((255,0,0), (0,240,0), (0,0,255), (29,227,245)) #Blue, Green, Red, Yellow
+colorCode = ((255,0,0), (0,240,0), (0,0,255), (29,227,245), (224,27,217)) #Blue, Green, Red, Yellow, Purple
 
 displayMenu()
 
@@ -113,7 +113,7 @@ arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
 botLocAbs = [(0,0), (0,0), (0,0), (0,0)]
 botLocArena = [(0,0), (0,0), (0,0), (0,0)]
 botHeading = [0, 0, 0, 0]
-botAlive = [False, False, False, False]
+botAlive = [True, True, True, True]
 
 ###############
 ## LOOP
@@ -129,9 +129,8 @@ while True:
     modImg = cv2.cvtColor(origImg, cv2.COLOR_BGR2GRAY) #convert to grayscale
     width = size(modImg, 1)
     height = size(modImg, 0)
-    if displayMode == 2:
-        #outputImg = cv.CreateImage((width,height), cv.IPL_DEPTH_32S,1)
-        outputImg = zeros((height,width,3), uint8)
+    if displayMode >= 2:
+        outputImg = zeros((height,width,3), uint8) #create a blank image
     else:
         outputImg = cv2.cvtColor(modImg, cv2.COLOR_GRAY2BGR)
     #Scan for QR codes
@@ -145,12 +144,13 @@ while True:
         #Arena Corners
         match = arena_pattern.match(symbol.data)
         if match:
-            drawBorder(outputImg, symbol.location, colorCode[0], 2)
-            pt = (symbol.location[1][0]+8, symbol.location[1][1]-25)  
             a = int(match.group(1))
             c = int(match.group(2))
-            cv2.putText(outputImg, str(a)+'-'+str(c), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[0], 2)
-            if int(match.group(1)) == arenaId: #found a corner for the arena
+            if displayMode < 3:
+                drawBorder(outputImg, symbol.location, colorCode[0], 2)
+                pt = (symbol.location[1][0]+8, symbol.location[1][1]-25)  
+                cv2.putText(outputImg, str(a)+'-'+str(c), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[0], 2)
+            if a == arenaId: #found a corner for the arena
                 arenaCorners[c] = symbol.location[c]
         #Bot Symbol
         match = bot_pattern.match(symbol.data)
@@ -168,13 +168,14 @@ while True:
             botHeading[botId] = h
 
             #draw the borders, heading, and text for bot symbol
-            drawBorder(outputImg, symbol.location, colorCode[1], 2)                  
-            pt = (pt[0]-20, pt[1]+10)            
-            cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[1], 2)
-            ptdiff = findDiffs(symbol.location[1], symbol.location[0])
-            pt0 = findDiffPt(symbol.location[0], symbol.location[3])
-            pt1 = (pt0[0]+int(ptdiff[0]*1.7), pt0[1]+int(ptdiff[1]*1.7))
-            cv2.line(outputImg, pt0, pt1, colorCode[1], 2)
+            if displayMode < 3:
+                drawBorder(outputImg, symbol.location, colorCode[1], 2)                  
+                pt = (pt[0]-20, pt[1]+10)            
+                cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[1], 2)
+                ptdiff = findDiffs(symbol.location[1], symbol.location[0])
+                pt0 = findDiffPt(symbol.location[0], symbol.location[3])
+                pt1 = (pt0[0]+int(ptdiff[0]*1.7), pt0[1]+int(ptdiff[1]*1.7))
+                cv2.line(outputImg, pt0, pt1, colorCode[1], 2)
         #Bot Dead
         match = dead_pattern.match(symbol.data)
         if match:
@@ -182,7 +183,8 @@ while True:
             pt = findCenter(symbol.location)
             pt = (pt[0]-20, pt[1]+10)            
             cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[2], 2)
-            
+            botid = int(match.group(1))            
+            botAlive[botid] == False #mark bot as dead
 
     if verboseScan:
         print
@@ -193,6 +195,8 @@ while True:
 
     #Last Know Bot Locations
     for idx,pt in enumerate(botLocAbs):
+        if pt[0] == 0 and pt[1] == 0:
+            continue
         cv2.circle(outputImg, pt, 30, colorCode[3], 2)
         textPt = (pt[0]-8, pt[1]+8)
         cv2.putText(outputImg, str(idx), textPt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[3], 2)
@@ -204,12 +208,16 @@ while True:
 
     #Display Output       
     if displayMode == 0: #display source image
+        cv2.putText(origImg, "source", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 2)
         cv2.imshow("ArenaScanner", origImg)
 
     elif displayMode == 1: #display source with data overlay
         cv2.imshow("ArenaScanner", outputImg)
 
     elif displayMode == 2: #display only data overlay
+        cv2.imshow("ArenaScanner", outputImg)
+
+    elif displayMode == 3: #display the only the bots point of view
         cv2.imshow("ArenaScanner", outputImg)
 
     #Process key presses        
@@ -227,7 +235,7 @@ while True:
 
         elif chr(key) == 'd': #d key
             displayMode += 1
-            if displayMode > 2:
+            if displayMode > 3:
                 displayMode = 0
             displayPrint("displayMode:",displayMode)
 

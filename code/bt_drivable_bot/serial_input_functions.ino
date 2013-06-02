@@ -30,7 +30,7 @@ void getIntsFromString(int param[], String strInput, byte paramStart){
 /*
   processSerialInput
 process and serial input until a \n is recieved.  Then parse the input for a
-valid command.  Then reset the input string
+valid command.  Then reset the input string. ex.) FWD,100,100
 ------------------------------------------------------------------------------*/
 boolean processSerialInput(){
   boolean newdata = false;

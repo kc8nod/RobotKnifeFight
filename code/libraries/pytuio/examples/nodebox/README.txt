@@ -1,1 +1,0 @@
-Please copy the tuio folder to ~/Library/Applications Support/Nodebox.
