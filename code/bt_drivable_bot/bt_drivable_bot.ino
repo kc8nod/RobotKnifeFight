@@ -67,7 +67,13 @@ void loop() {
   
   //Read Bump Switches
   bump_R = digitalRead(BUMP_SWITCH_RIGHT_PIN);
+  if(!bump_R){
+    outputStatus();
+  }
   bump_L = digitalRead(BUMP_SWITCH_LEFT_PIN);
+  if(!bump_L){
+    outputStatus();
+  }
   
   //Update Servo positions  
   if(now - timeLastServoUp > 15){  //limit servo updating to every 15ms at most
@@ -102,6 +108,7 @@ void outputStatus(){
   //Serial.println(message_count);
   //Serial.println(radio);
   Serial.print("}");
+  Serial.println();
 }
 
 

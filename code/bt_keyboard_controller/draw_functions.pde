@@ -83,7 +83,7 @@ void setActive(boolean active){
    stroke(100);
    fill(100);
    int yOffset = (200*i);
-   rect(30, 30+yOffset, 23, 8);
+   rect(30, 30+yOffset, 35, 8);
    stroke(255);
    fill(255);
    textAlign(CENTER);

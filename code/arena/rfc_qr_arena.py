@@ -179,12 +179,13 @@ while True:
         #Bot Dead
         match = dead_pattern.match(symbol.data)
         if match:
-            drawBorder(outputImg, symbol.location, colorCode[2], 2)
-            pt = findCenter(symbol.location)
-            pt = (pt[0]-20, pt[1]+10)            
-            cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[2], 2)
+            if displayMode < 3:
+                drawBorder(outputImg, symbol.location, colorCode[2], 2)
+                pt = findCenter(symbol.location)
+                pt = (pt[0]-20, pt[1]+10)            
+                cv2.putText(outputImg, match.group(1), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[2], 2)
             botid = int(match.group(1))            
-            botAlive[botid] == False #mark bot as dead
+            botAlive[botid] = False #mark bot as dead
 
     if verboseScan:
         print
@@ -197,27 +198,34 @@ while True:
     for idx,pt in enumerate(botLocAbs):
         if pt[0] == 0 and pt[1] == 0:
             continue
-        cv2.circle(outputImg, pt, 30, colorCode[3], 2)
+        if botAlive[idx]:
+            color = colorCode[3]
+        else:
+            color = colorCode[2]
+        cv2.circle(outputImg, pt, 30, color, 2)
         textPt = (pt[0]-8, pt[1]+8)
-        cv2.putText(outputImg, str(idx), textPt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[3], 2)
+        cv2.putText(outputImg, str(idx), textPt, cv2.FONT_HERSHEY_PLAIN, 1.5, color, 2)
         ang = botHeading[idx]*math.pi/8
         pt0 = ((pt[0]+int(math.cos(ang)*30)), (pt[1]-int(math.sin(ang)*30)))
         pt1 = ((pt[0]+int(math.cos(ang)*30*4)), (pt[1]-int(math.sin(ang)*30*4)))
-        cv2.line(outputImg, pt0, pt1, colorCode[3], 2)
+        cv2.line(outputImg, pt0, pt1, color, 2)
 
 
     #Display Output       
     if displayMode == 0: #display source image
-        cv2.putText(origImg, "source", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 2)
+        cv2.putText(origImg, "source", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
         cv2.imshow("ArenaScanner", origImg)
 
     elif displayMode == 1: #display source with data overlay
+        cv2.putText(outputImg, "scan", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
         cv2.imshow("ArenaScanner", outputImg)
 
     elif displayMode == 2: #display only data overlay
+        cv2.putText(outputImg, "data", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
         cv2.imshow("ArenaScanner", outputImg)
 
     elif displayMode == 3: #display the only the bots point of view
+        cv2.putText(outputImg, "bot", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
         cv2.imshow("ArenaScanner", outputImg)
 
     #Process key presses        
