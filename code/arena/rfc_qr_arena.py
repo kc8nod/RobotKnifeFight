@@ -1,7 +1,7 @@
 import cv, cv2
 CV_CAP_PROP_FRAME_WIDTH = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4
-
+import serial
 import sys, math, time
 from numpy import *
 import re
@@ -120,6 +120,10 @@ botLocArena = [(0,0), (0,0), (0,0), (0,0)]
 botHeading = [0, 0, 0, 0]
 botAlive = [True, True, True, True]
 
+xmit_port = serial.Serial("/dev/ttyS0", 38400)
+time.sleep(3)
+xmit_port.write("start\n")
+
 ###############
 ## LOOP
 ###############
@@ -198,6 +202,11 @@ while True:
                 pt1 = (pt0[0]+int(ptdiff[0]*1.7), pt0[1]+int(ptdiff[1]*1.7))
                 cv2.line(outputImg, pt0, pt1, colorCode[1], 2)
 
+            #build xmit string
+            xmitcom = "pos %d %d %d %d %d\n" % (botId,botLocArena[botId][0],botLocArena[botId][1],botHeading[botId],botAlive[botId])
+            xmit_port.write(xmitcom)
+            print xmitcom
+    
         #Bot Dead
         match = dead_pattern.match(symbol.data)
         if match:
@@ -300,7 +309,8 @@ while True:
 ## END LOOP
 ###############
 cap.release()
-cv2.destroyAllWindows()        
+cv2.destroyAllWindows()
+xmit_port.write('reset\n')        
 print
 print "Exiting."
 print    
