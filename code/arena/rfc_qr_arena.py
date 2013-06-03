@@ -284,7 +284,7 @@ while True:
             botLocAbs = [(0,0), (0,0), (0,0), (0,0)]
             botLocArena = [(0,0), (0,0), (0,0), (0,0)]
             botHeading = [0, 0, 0, 0]
-            displayPrint("reset bot statuses")
+            displayPrint("reset arena statuses")
             arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
             arenaInnerCorners = [(0,0),(0,0),(0,0),(0,0)]
                 
