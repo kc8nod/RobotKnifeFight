@@ -16,6 +16,8 @@ def displayMenu():
     print "------------------------------"
     print "'h' Print this help menu."
     print "'d' Toggle display mode."
+    print "'r' reset arena statuses."
+    print "0-3 toggle bot alive."
     print "'v' Toggle verbose scanning."
     print "'Esc' to exit."
     print "------------------------------"
@@ -108,7 +110,10 @@ colorCode = ((255,0,0), (0,240,0), (0,0,255), (29,227,245), (224,27,217)) #Blue,
 displayMenu()
 
 arenaId = 0
+arenaSize = (70.5, 46.5) #Arena size in inches
+
 arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
+arenaInnerCorners = [(0,0),(0,0),(0,0),(0,0)]
 
 botLocAbs = [(0,0), (0,0), (0,0), (0,0)]
 botLocArena = [(0,0), (0,0), (0,0), (0,0)]
@@ -141,6 +146,7 @@ while True:
     for symbol in image:
         if verboseScan:
 		    print symbol.data, symbol.location
+
         #Arena Corners
         match = arena_pattern.match(symbol.data)
         if match:
@@ -152,12 +158,27 @@ while True:
                 cv2.putText(outputImg, str(a)+'-'+str(c), pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[0], 2)
             if a == arenaId: #found a corner for the arena
                 arenaCorners[c] = symbol.location[c]
+                ic = (c+2)%4
+                arenaInnerCorners[c] = symbol.location[ic]
+
         #Bot Symbol
         match = bot_pattern.match(symbol.data)
         if match:
             pt = findCenter(symbol.location)
             botId = int(match.group(1))
-            botLocAbs[botId] = pt #update the bots location
+            
+            #update the bots location
+            botLocAbs[botId] = pt
+            wallCenterX = findDiffPt(arenaCorners[0],arenaCorners[3])
+            wallCenterY = findDiffPt(arenaCorners[0],arenaCorners[1])
+            maxX = arenaCorners[3][0]-arenaCorners[0][0]
+            maxY = arenaCorners[1][1]-arenaCorners[0][1]
+            arenaPtX = pt[0]-wallCenterY[0]
+            arenaPtY = pt[1]-wallCenterX[1]
+            if maxX>0 and maxY>0:
+                arenaPtX = int(float(arenaPtX)/float(maxX)*arenaSize[0])
+                arenaPtY = int(float(arenaPtY)/float(maxY)*arenaSize[1])
+            botLocArena[botId] = (arenaPtX, arenaPtY)
 
             #update the bots heading
             x = symbol.location[3][0] - symbol.location[0][0]
@@ -176,6 +197,7 @@ while True:
                 pt0 = findDiffPt(symbol.location[0], symbol.location[3])
                 pt1 = (pt0[0]+int(ptdiff[0]*1.7), pt0[1]+int(ptdiff[1]*1.7))
                 cv2.line(outputImg, pt0, pt1, colorCode[1], 2)
+
         #Bot Dead
         match = dead_pattern.match(symbol.data)
         if match:
@@ -192,7 +214,8 @@ while True:
 
     #Draw Objects
     #Arena
-    drawBorder(outputImg, arenaCorners, colorCode[0], 2)    
+    drawBorder(outputImg, arenaCorners, colorCode[0], 2)  
+    drawBorder(outputImg, arenaInnerCorners, colorCode[0], 1)  
 
     #Last Know Bot Locations
     for idx,pt in enumerate(botLocAbs):
@@ -210,6 +233,15 @@ while True:
         pt1 = ((pt[0]+int(math.cos(ang)*30*4)), (pt[1]-int(math.sin(ang)*30*4)))
         cv2.line(outputImg, pt0, pt1, color, 2)
 
+    #Draw Statuses
+    lh = 20 #line height
+    pt = (0,40)
+    for idx in range(0,4):
+        if botLocAbs[idx][0]==0 and botLocAbs[idx][1]==0:
+            continue
+        status = str(idx)+":"+str(botLocArena[idx])+' '+str(botHeading[idx])
+        cv2.putText(outputImg, status, pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
+        pt = (pt[0],pt[1]+lh)
 
     #Display Output       
     if displayMode == 0: #display source image
@@ -246,6 +278,20 @@ while True:
             if displayMode > 3:
                 displayMode = 0
             displayPrint("displayMode:",displayMode)
+        
+        elif chr(key) == 'r': #r key
+            botAlive = [True, True, True, True]
+            botLocAbs = [(0,0), (0,0), (0,0), (0,0)]
+            botLocArena = [(0,0), (0,0), (0,0), (0,0)]
+            botHeading = [0, 0, 0, 0]
+            displayPrint("reset bot statuses")
+            arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
+            arenaInnerCorners = [(0,0),(0,0),(0,0),(0,0)]
+                
+        elif 48 <= key and key <=51: #0-3
+            botid = key-48
+            botAlive[botid] = not botAlive[botid]
+            displayPrint("bot "+str(botid)+" alive:",botAlive[botid])
 
         else:
             displayPrint("unassigned key", key, chr(key))
