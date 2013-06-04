@@ -37,7 +37,7 @@ void setup() {
   sCmd.addCommand("?",   send_printPacket);
   sCmd.setDefaultHandler(unrecognized);      // Handler for command that isn't defined
   
-  Serial.begin(38400);
+  Serial.begin(115200);
   Serial.println("rkf_xmit: reset");
   printHelp();
 }

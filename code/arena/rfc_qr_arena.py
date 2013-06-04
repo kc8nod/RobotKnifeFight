@@ -16,6 +16,7 @@ def displayMenu():
     print "------------------------------"
     print "'h' Print this help menu."
     print "'d' Toggle display mode."
+    print "'t' Toggle verbose transmitting."
     print "'r' reset arena statuses."
     print "0-3 toggle bot alive."
     print "'v' Toggle verbose scanning."
@@ -76,7 +77,12 @@ key = -1
 displayMode = 1
 
 verboseScan = False
+verboseTransmit = False
 
+xmitportindex = 0
+
+#Prompt for settings
+#Camera ID
 displayPrint("Enter the camera's index")
 in_str = raw_input("defaults [%1d] " % cameraindex)
 match = index_pattern.match(in_str)
@@ -86,6 +92,7 @@ if match:
 else:
     print "using default"
 
+#Resolution
 print("Enter the camera's resolution ")
 for idx,(x,y) in enumerate(resolutions):
     print "[{}] {}x{}".format(idx,x,y)
@@ -96,7 +103,18 @@ if match:
     resolutionindex = int(match.group(0))
 else:
     print "using default"
-    
+
+#RKF_Xmit serial port
+displayPrint("Enter the RKF_Xmit serial port's index /dev/ttyUSB[?]")   
+in_str = raw_input("defaults [%1d] " % xmitportindex)
+match = index_pattern.match(in_str)
+if match:
+    print "using "+match.group(0)
+    xmitportindex = int(match.group(0))
+else:
+    print "using default"
+xmit_port = serial.Serial("/dev/ttyUSB"+str(xmitportindex), 115200, timeout=1)
+
 cap = cv2.VideoCapture(cameraindex)
 cap.set(CV_CAP_PROP_FRAME_WIDTH, resolutions[resolutionindex][0])
 cap.set(CV_CAP_PROP_FRAME_HEIGHT, resolutions[resolutionindex][1])
@@ -120,9 +138,7 @@ botLocArena = [(0,0), (0,0), (0,0), (0,0)]
 botHeading = [0, 0, 0, 0]
 botAlive = [True, True, True, True]
 
-xmit_port = serial.Serial("/dev/ttyS0", 38400)
-time.sleep(3)
-xmit_port.write("start\n")
+gameOn = False
 
 ###############
 ## LOOP
@@ -205,7 +221,7 @@ while True:
             #build xmit string
             xmitcom = "pos %d %d %d %d %d\n" % (botId,botLocArena[botId][0],botLocArena[botId][1],botHeading[botId],botAlive[botId])
             xmit_port.write(xmitcom)
-            print xmitcom
+            #print xmitcom
     
         #Bot Dead
         match = dead_pattern.match(symbol.data)
@@ -282,6 +298,10 @@ while True:
             verboseScan = not verboseScan
             displayPrint("verboseScan:",verboseScan)
 
+        elif chr(key) == 't': #t key
+            verboseTransmit = not verboseTransmit
+            displayPrint("verboseTransmit:",verboseTransmit)
+
         elif chr(key) == 'd': #d key
             displayMode += 1
             if displayMode > 3:
@@ -296,21 +316,37 @@ while True:
             displayPrint("reset arena statuses")
             arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
             arenaInnerCorners = [(0,0),(0,0),(0,0),(0,0)]
-                
+            xmit_port.write("reset\n")
+
         elif 48 <= key and key <=51: #0-3
             botid = key-48
             botAlive[botid] = not botAlive[botid]
             displayPrint("bot "+str(botid)+" alive:",botAlive[botid])
+        
+        elif chr(key) == ' ': #space key
+            if gameOn:            
+                xmit_port.write("stop\n")
+            else:
+                xmit_port.write("start\n")
+            gameOn = not gameOn
+            displayPrint("gameOn:",gameOn)
 
         else:
             displayPrint("unassigned key", key, chr(key))
+    
+    #print serial data
+    if verboseTransmit and gameOn:
+        print(xmit_port.readline().strip());
+    xmit_port.flushInput()
+        
 
 ###############
 ## END LOOP
 ###############
 cap.release()
 cv2.destroyAllWindows()
-xmit_port.write('reset\n')        
+xmit_port.write('reset\n')
+xmit_port.close()        
 print
 print "Exiting."
 print    

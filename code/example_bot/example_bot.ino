@@ -64,15 +64,16 @@ void loop(){
     
     outputStatus(); //comment out if not debugging
 
-//Instead of message types what if this was the game_id indicator in case multiple games in same area
-//    switch(radio.packet.message)  //Do stuff based on message type.  
-//    {
-//      case 0:  // position message
-//        //parse position data.
-//        break;  
-//      default: 
-//        break;  // do nothing    
-//    }
+    switch(radio.packet.message)  //Do stuff based on message type.  
+    {
+      case 0:  // position message
+        //parse position data.
+        Serial.print("got msg ");
+        Serial.println(message_count);
+        break;  
+      default: 
+        break;  // do nothing    
+    }
   }
   
   if(vw_rx_active){  //if radio is busy receiving a message
