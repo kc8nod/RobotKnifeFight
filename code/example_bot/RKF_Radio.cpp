@@ -24,8 +24,7 @@ double RKF_Position::bearing(RKF_Position& target)
 
   return atan2(double(deltaY), double(deltaX));
 }
-
-
+ 
 int RKF_Radio::start()
 {
   return this->start(DEFAULT_BAUD_RATE, DEFAULT_RX_PIN);

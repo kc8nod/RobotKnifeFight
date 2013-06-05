@@ -3,6 +3,7 @@
 
 #define DEFAULT_BAUD_RATE  4800
 #define DEFAULT_RX_PIN       11
+#define RKF_POSITION_MESSAGE 0
 
 class RKF_Position
 {

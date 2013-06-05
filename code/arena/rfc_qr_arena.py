@@ -20,8 +20,10 @@ def displayMenu():
     print "'r' reset arena statuses."
     print "0-3 toggle bot alive."
     print "'v' Toggle verbose scanning."
+    print "SPACE Toggles game on and off."
     print "'Esc' to exit."
-    print "------------------------------"
+    print
+    
 
 def displayPrint(a, b="", c=""):
     print "------------------------------"
@@ -54,6 +56,12 @@ def drawBorder(img, symbol, color, thickness):
     cv2.line(img, symbol[2], symbol[3], color, thickness)
     cv2.line(img, symbol[3], symbol[0], color, thickness)
             
+def arenaReady():
+    ready = True
+    for corner in arenaCorners:
+        if corner[0]==0 and corner[1]==0:
+            ready = False
+    return ready
 
 ###############
 ## SETUP
@@ -189,16 +197,16 @@ while True:
             
             #update the bots location
             botLocAbs[botId] = pt
-            wallCenterX = findDiffPt(arenaCorners[0],arenaCorners[3])
-            wallCenterY = findDiffPt(arenaCorners[0],arenaCorners[1])
-            maxX = arenaCorners[3][0]-arenaCorners[0][0]
-            maxY = arenaCorners[1][1]-arenaCorners[0][1]
-            arenaPtX = pt[0]-wallCenterY[0]
-            arenaPtY = pt[1]-wallCenterX[1]
-            if maxX>0 and maxY>0:
+            if arenaReady():            
+                wallCenterX = findDiffPt(arenaCorners[0],arenaCorners[3])
+                wallCenterY = findDiffPt(arenaCorners[0],arenaCorners[1])
+                maxX = arenaCorners[3][0]-arenaCorners[0][0]
+                maxY = arenaCorners[1][1]-arenaCorners[0][1]
+                arenaPtX = pt[0]-wallCenterY[0]
+                arenaPtY = pt[1]-wallCenterX[1]
                 arenaPtX = int(float(arenaPtX)/float(maxX)*arenaSize[0])
                 arenaPtY = int(float(arenaPtY)/float(maxY)*arenaSize[1])
-            botLocArena[botId] = (arenaPtX, arenaPtY)
+                botLocArena[botId] = (arenaPtX, arenaPtY)
 
             #update the bots heading
             x = symbol.location[3][0] - symbol.location[0][0]
@@ -265,25 +273,35 @@ while True:
         if botLocAbs[idx][0]==0 and botLocAbs[idx][1]==0:
             continue
         status = str(idx)+":"+str(botLocArena[idx])+' '+str(botHeading[idx])
-        cv2.putText(outputImg, status, pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
+        cv2.putText(outputImg, status, pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 2)
         pt = (pt[0],pt[1]+lh)
+    pt = (0,height-10)
+    status = "Game On" if gameOn else "Game Off"
+    cv2.putText(outputImg, status, pt, cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 2)
 
     #Display Output       
     if displayMode == 0: #display source image
-        cv2.putText(origImg, "source", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
-        cv2.imshow("ArenaScanner", origImg)
-
+        outputImg = origImg
+        pt0 = (width/2,height/2-5)
+        pt1 = (width/2,height/2+5)
+        cv2.line(outputImg, pt0, pt1, colorCode[4], 2)
+        pt0 = (width/2-5,height/2)
+        pt1 = (width/2+5,height/2)
+        cv2.line(outputImg, pt0, pt1, colorCode[4], 2)
+        displayModeLabel = "source"   
+        
     elif displayMode == 1: #display source with data overlay
-        cv2.putText(outputImg, "scan", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
-        cv2.imshow("ArenaScanner", outputImg)
+        displayModeLabel = "overlay"
 
     elif displayMode == 2: #display only data overlay
-        cv2.putText(outputImg, "data", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
-        cv2.imshow("ArenaScanner", outputImg)
+        displayModeLabel = "data"
 
     elif displayMode == 3: #display the only the bots point of view
-        cv2.putText(outputImg, "bot", (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 1)
-        cv2.imshow("ArenaScanner", outputImg)
+        displayModeLabel = "bot"
+
+    cv2.putText(outputImg, displayModeLabel, (0,15), cv2.FONT_HERSHEY_PLAIN, 1.5, colorCode[4], 2)
+    cv2.imshow("ArenaScanner", outputImg)
+
 
     #Process key presses        
     key = cv2.waitKey(10)        
@@ -316,6 +334,7 @@ while True:
             displayPrint("reset arena statuses")
             arenaCorners = [(0,0),(0,0),(0,0),(0,0)]
             arenaInnerCorners = [(0,0),(0,0),(0,0),(0,0)]
+            gameOn = False
             xmit_port.write("reset\n")
 
         elif 48 <= key and key <=51: #0-3
@@ -332,9 +351,10 @@ while True:
             displayPrint("gameOn:",gameOn)
 
         else:
-            displayPrint("unassigned key", key, chr(key))
+            displayPrint("unassigned key", key, "'"+chr(key)+"'")
+            displayMenu()
     
-    #print serial data
+    #Handle serial data
     if verboseTransmit and gameOn:
         print(xmit_port.readline().strip());
     xmit_port.flushInput()
