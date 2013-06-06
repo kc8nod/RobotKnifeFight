@@ -3,6 +3,8 @@
 output important variables to the Serial port
 ------------------------------------------------------------------------------*/
 void outputStatus(){
+  Serial.println();
+  unsigned long now = millis();
   Serial.print("now:");
   Serial.print(now);
   Serial.print("\ttimeToStop:");
@@ -12,14 +14,44 @@ void outputStatus(){
   }else{
     Serial.print(0);
   }
+  
+  Serial.print("\ttimeLastMessage:");
+  Serial.print(now-timeLastMessage);
+  Serial.println();
+  
+  Serial.print("Me[");
+  Serial.print(MY_BOT_ID);
+  Serial.print("]: (");
+  Serial.print(Me.x);
+  Serial.print(", ");
+  Serial.print(Me.y);
+  Serial.print(") H");
+  Serial.print(Me.heading);
   Serial.print("\tL:");
   Serial.print(speed_L);
   Serial.print("\tR:");
   Serial.print(speed_R);
   Serial.println();
   
-  for (byte i=0; i<8; i++){
+  Serial.print("Target: (");
+  Serial.print(Target.x);
+  Serial.print(", ");
+  Serial.print(Target.y);
+  Serial.print(") H");
+  Serial.print(Target.heading);
+  
+  Serial.print("\tdistanceTo:");
+  Serial.print(distanceTo);
+  Serial.print("\theadingTo:");
+  Serial.print(headingTo);
+  
+  Serial.println();
+  
+  for (byte i=0; i<4; i++){
     outputBotStatus(i);
+    if(i == MY_BOT_ID){
+      
+    }
     Serial.println();
   } 
   Serial.println();
@@ -35,13 +67,6 @@ void outputHelp(){
   Serial.println("Help Menu:");
   Serial.println("--------------------------");
   Serial.println("'H'\tDisplay this Help Menu");
-//  Serial.println("S\tStop");
-//  Serial.println("F[#]\tGo Forward for # ms or forever if not set");
-//  Serial.println("B[#]\tGo Backward for # ms or forever if not set");
-//  Serial.println("L[#]\tGo Left for # ms or forever if not set");
-//  Serial.println("R[#]\tGo Right for # ms or forever if not set");
-//  Serial.println("SL####\tSet Left Servo to a timing between 1000 and 2000 ms");
-//  Serial.println("SR####\tSet Right Servo to a timing between 1000 and 2000 ms");
   Serial.println("'?'\tDisplay important status variables");
   Serial.println();
 }

@@ -4,8 +4,6 @@
 #include "pin_defs.h"
 #include "RKF_Radio.h"
 
-unsigned long now = 0;
-
 ServoTimer2 LeftDrive, RightDrive;
 #define LEFT_FWD 2000
 #define LEFT_STOP 1500
@@ -22,11 +20,18 @@ unsigned long timeLastStatus = 0;
 RKF_Radio radio;
 extern "C" { uint8_t vw_rx_active; };
 unsigned long timeLastMessage = 0;
+unsigned long timeLastRadioAttempt = 0;
 
 String serialInputString = "";  // a string to hold incoming data
 
 RKF_Position Me;
-RKF_Position Destination;
+RKF_Position Target;
+
+int headingTo = 0;
+byte distanceTo = 0;
+
+boolean gameOn = false;
+
 /*
   Setup
 ------------------------------------------------------------------------------*/
@@ -49,10 +54,11 @@ void setup(){
   
   outputHelp();
   
-  //Define Destination point and heading
-  Destination.x = 58;
-  Destination.y = 36;
-  Destination.heading = 0;
+  //Define Target point and heading
+  Target.x = 58;
+  Target.y = 36;
+  Target.heading = 0;
+  
 }
 
 
@@ -60,19 +66,20 @@ void setup(){
   Main loop
 ------------------------------------------------------------------------------*/
 void loop(){
-  now = millis();
-  
-  if(radio.recv()){  //if a radio message has been received
-    timeLastMessage = now;
-    
-    switch(radio.packet.message)  //Do stuff based on message type.  
-    {
-      case RKF_POSITION_MESSAGE:  // position message
-        //update my location
-        Me = radio.packet.robot[MY_BOT_ID];
-        outputStatus();
-        break;  
+  //Get Radio data if available
+  if(millis()-timeLastRadioAttempt>50){  //onlt check for new message every 50ms
+    Serial.print(".");
+    if(radio.recv()){  //if a radio message has been received
+      switch(radio.packet.message)  //Do stuff based on message type.  
+      {
+        case RKF_POSITION_MESSAGE:  // position message
+          timeLastMessage = millis();
+          Me = radio.packet.robot[MY_BOT_ID]; //update my location
+          Serial.print("+");
+          break;  
+      }
     }
+    timeLastRadioAttempt = millis();
   }
   
   processSerialInput();
@@ -81,87 +88,101 @@ void loop(){
   //-------------------------------------------
   
   //indicate time of last message with status LED
-  if(timeLastMessage > 0 && (now-timeLastMessage)<1000){
-    digitalWrite(STATUS_LED_PIN, true); //message recieved in last 1000ms
+  if((millis()-timeLastMessage) < 5000) {
+    digitalWrite(STATUS_LED_PIN, true); //message recieved in last 5000ms
+    gameOn = true;
   }else{
     digitalWrite(STATUS_LED_PIN, false);
+    gameOn = false;
   }
-  
-  //go to the Destination point
-  //what is the distance?
-  byte d = byte(Me.distance(Destination));
-  
-  //what is the heading?
-  //convert the bearing to a heading of 0-15 increasing counter clockwise
-  //should the RKF_Radio lib do this?
-  int heading = int(16 + round( -Me.bearing(Destination)/(PI/8) + (PI/16) ))%16; 
-  //Serial.print(heading);
-  //Serial.print(" ");
-  //Serial.print(Me.heading);
-  //Serial.print(" ");
-  
-  //what is the rotation direction and amount needed?
-  int hdiff = (heading-Me.heading);
-  byte rot_amount;
-  if (hdiff==0){
-    //I'm facing the right way to the Destination point
-    //stop
-    //Serial.print("STOP  ");
-    speed_L = LEFT_STOP;
-    speed_R = RIGHT_STOP;
-    timeToStop = now;
+  if(gameOn){
+    //go to the Target point
     
-  }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
-    //Turn left
-    //Serial.print("LEFT ");
-    rot_amount = (16+abs(hdiff))%16;
-    if (rot_amount > 0){
-      speed_L = (LEFT_REV-LEFT_STOP)*0.1 + LEFT_STOP;
-      speed_R = (RIGHT_FWD-RIGHT_STOP)*0.1 + RIGHT_STOP;
-      timeToStop = now + 200;
+    if(Me.x>0 || Me.y>0){  //if my position is valid.
+      
+      //what is the distance to the Target point?
+      distanceTo = byte(Me.distance(Target));
+      
+      //what is the heading to the Target point?
+      //convert the bearing to a heading of 0-15 increasing counter clockwise
+      headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
+    
+  
+      //what is the rotation direction and amount needed?
+      int hdiff = (headingTo-Me.heading);
+      byte rot_amount;
+      if (hdiff==0){
+        //I'm facing the right way to the Target point
+        //stop
+        //Serial.println("STOP  ");
+        speed_L = LEFT_STOP;
+        speed_R = RIGHT_STOP;
+        timeToStop = millis();
+        
+      }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
+        //Turn left
+        rot_amount = (16+abs(hdiff))%16;
+        if (rot_amount > 0){
+          //speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
+          //speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
+          //timeToStop = millis() + 200;
+        }
+        //Serial.print("LEFT ");
+        //Serial.println(rot_amount);
+        
+      }else{
+        //Turn right
+        rot_amount = (16-abs(hdiff))%16;
+        if (rot_amount > 0){
+          //speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+          //speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
+          //timeToStop = millis() + 200;
+        }
+        //Serial.print("RIGHT ");
+        //Serial.println(rot_amount);
+      }
     }
     
-  }else{
-    //Turn right
-    //Serial.print("RIGHT ");
-    rot_amount = (16-abs(hdiff))%16;
-    if (rot_amount > 0){
-      speed_L = (LEFT_FWD-LEFT_STOP)*0.1 + LEFT_STOP;
-      speed_R = (RIGHT_REV-RIGHT_STOP)*0.1 + RIGHT_STOP;
-      timeToStop = now + 200;
+    //if a bump switch is triggered backup until it is not triggered
+    boolean hit_something = false;
+    if(!digitalRead(BUMP_SWITCH_RIGHT_PIN) || !digitalRead(BUMP_SWITCH_LEFT_PIN)){
+      hit_something = true;
+      speed_L = LEFT_REV;
+      speed_R = RIGHT_REV;
+      timeToStop = millis() + 100; //reverse for 100ms
     }
-  }
-  //Serial.print(rot_amount);
-  //Serial.print(" ");
-  //Serial.print(timeToStop);
-  //Serial.println();
-  
-  //if a bump switch is triggered backup until it is not triggered
-  boolean hit_something = false;
-  if(!digitalRead(BUMP_SWITCH_RIGHT_PIN) || !digitalRead(BUMP_SWITCH_LEFT_PIN)){
-    hit_something = true;
-    speed_L = LEFT_REV;
-    speed_R = RIGHT_REV;
-    timeToStop = now + 100; //reverse for 100ms
+    
   }
   
-  //Is it time to stop?
-  if(timeToStop > 0 && now >= timeToStop){
+  
+  //-------------------------------------------
+  
+  
+  //Is it time to stop?  I consider this more of a reflex than thought.
+  if(timeToStop > 0 && millis() >= timeToStop){
     speed_L = LEFT_STOP;
     speed_R = RIGHT_STOP;
     timeToStop = 0;
   }
   
-  //-------------------------------------------
-  
   //Update Servo positions  
-  if(now - timeLastServoUpdate > 15){  //limit servo updating to every 15ms at most
+  if(millis() - timeLastServoUpdate > 15){  //limit servo updating to every 15ms at most
     LeftDrive.write(speed_L);
     RightDrive.write(speed_R);
-    timeLastServoUpdate = now;
+    timeLastServoUpdate = millis();
   }
   
+  if(millis()-timeLastStatus > 1000){
+    outputStatus();
+    timeLastStatus = millis();
+  }
+    
   delay(1);
 }
 /*----------------------------------------------------------------------------*/
 
+
+
+int throttle(int Direction, int Stop, float Throttle){
+  return int((Direction-Stop)*Throttle + Stop);
+}
