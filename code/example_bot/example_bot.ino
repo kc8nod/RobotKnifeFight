@@ -15,6 +15,7 @@ unsigned int speed_L = LEFT_STOP;
 unsigned int speed_R = RIGHT_STOP;
 unsigned long timeLastServoUpdate = 0;
 unsigned long timeToStop = 0;
+unsigned long timeToGo = 0;
 unsigned long timeLastStatus = 0;
 
 RKF_Radio radio;
@@ -123,23 +124,27 @@ void loop(){
         //Turn left
         rot_amount = (16+abs(hdiff))%16;
         if (rot_amount > 0){
-          //speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
-          //speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-          //timeToStop = millis() + 200;
+          //turnleft then wait a little bit
+          if(timeToStop == 0 and timeToGo<millis()){
+            speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
+            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
+            timeToStop = millis() + 100;
+            timeToGo = timeToStop + 1000;
+          }
         }
-        //Serial.print("LEFT ");
-        //Serial.println(rot_amount);
         
       }else{
         //Turn right
         rot_amount = (16-abs(hdiff))%16;
         if (rot_amount > 0){
-          //speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
-          //speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
-          //timeToStop = millis() + 200;
+          //turnleft then wait a little bit
+          if(timeToStop == 0 and timeToGo<millis()){
+            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+            speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
+            timeToStop = millis() + 100;
+            timeToGo = timeToStop + 1000;
+          }
         }
-        //Serial.print("RIGHT ");
-        //Serial.println(rot_amount);
       }
     }
     
