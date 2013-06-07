@@ -39,19 +39,20 @@ void outputStatus(){
   Serial.print(Target.y);
   Serial.print(") H");
   Serial.print(Target.heading);
+  Serial.println();
   
   Serial.print("\tdistanceTo:");
   Serial.print(distanceTo);
   Serial.print("\theadingTo:");
   Serial.print(headingTo);
-  
+  Serial.print("\trotAmountTo:");
+  Serial.print(rotAmountTo);
+  Serial.print("\tactionCount:");
+  Serial.print(actionCount);
   Serial.println();
   
   for (byte i=0; i<4; i++){
     outputBotStatus(i);
-    if(i == MY_BOT_ID){
-      
-    }
     Serial.println();
   } 
   Serial.println();

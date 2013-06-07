@@ -30,6 +30,8 @@ RKF_Position Target;
 
 int headingTo = 0;
 byte distanceTo = 0;
+byte rotAmountTo = 0;
+byte actionCount = 0;
 
 boolean gameOn = false;
 
@@ -56,8 +58,8 @@ void setup(){
   outputHelp();
   
   //Define Target point and heading
-  Target.x = 58;
-  Target.y = 36;
+  Target.x = 12;
+  Target.y = 12;
   Target.heading = 0;
   
 }
@@ -75,7 +77,9 @@ void loop(){
       {
         case RKF_POSITION_MESSAGE:  // position message
           timeLastMessage = millis();
-          Me = radio.packet.robot[MY_BOT_ID]; //update my location
+          if(radio.packet.robot[MY_BOT_ID].x>0 || radio.packet.robot[MY_BOT_ID].y>0){
+            Me = radio.packet.robot[MY_BOT_ID]; //update my location
+          }
           Serial.print("+");
           break;  
       }
@@ -95,6 +99,7 @@ void loop(){
   }else{
     digitalWrite(STATUS_LED_PIN, false);
     gameOn = false;
+    Stop();
   }
   if(gameOn){
     //go to the Target point
@@ -111,38 +116,37 @@ void loop(){
   
       //what is the rotation direction and amount needed?
       int hdiff = (headingTo-Me.heading);
-      byte rot_amount;
       if (hdiff==0){
         //I'm facing the right way to the Target point
-        //stop
-        //Serial.println("STOP  ");
-        speed_L = LEFT_STOP;
-        speed_R = RIGHT_STOP;
-        timeToStop = millis();
+        Stop();
+        rotAmountTo = 0;
+        
         
       }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
         //Turn left
-        rot_amount = (16+abs(hdiff))%16;
-        if (rot_amount > 0){
-          //turnleft then wait a little bit
+        rotAmountTo = (16+abs(hdiff))%16;
+        if (rotAmountTo > 0){
+          //turn left then wait a little bit
           if(timeToStop == 0 and timeToGo<millis()){
             speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
             speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-            timeToStop = millis() + 100;
+            timeToStop = millis() + (100+50*(rotAmountTo-1));
             timeToGo = timeToStop + 1000;
+            actionCount++;
           }
         }
         
       }else{
         //Turn right
-        rot_amount = (16-abs(hdiff))%16;
-        if (rot_amount > 0){
-          //turnleft then wait a little bit
+        rotAmountTo = (16-abs(hdiff))%16;
+        if (rotAmountTo > 0){
+          //turn right then wait a little bit
           if(timeToStop == 0 and timeToGo<millis()){
             speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
             speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
-            timeToStop = millis() + 100;
+            timeToStop = millis() + (100+50*(rotAmountTo-1));
             timeToGo = timeToStop + 1000;
+            actionCount++;
           }
         }
       }
@@ -165,9 +169,7 @@ void loop(){
   
   //Is it time to stop?  I consider this more of a reflex than thought.
   if(timeToStop > 0 && millis() >= timeToStop){
-    speed_L = LEFT_STOP;
-    speed_R = RIGHT_STOP;
-    timeToStop = 0;
+    Stop();
   }
   
   //Update Servo positions  
@@ -187,6 +189,15 @@ void loop(){
 /*----------------------------------------------------------------------------*/
 
 
+void Stop(){
+  speed_L = LEFT_STOP;
+  speed_R = RIGHT_STOP;
+  timeToStop = 0;
+  
+  if(timeToGo <= millis()){
+    actionCount = 0;
+  }
+}
 
 int throttle(int Direction, int Stop, float Throttle){
   return int((Direction-Stop)*Throttle + Stop);

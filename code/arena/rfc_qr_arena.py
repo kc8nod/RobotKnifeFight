@@ -164,8 +164,11 @@ while True:
     height = size(modImg, 0)
     if displayMode >= 2:
         outputImg = zeros((height,width,3), uint8) #create a blank image
+    elif displayMode == 0:
+        outputImg = cv2.cvtColor(modImg, cv2.COLOR_GRAY2BGR)        
     else:
-        outputImg = cv2.cvtColor(modImg, cv2.COLOR_GRAY2BGR)
+        outputImg = origImg;
+
     #Scan for QR codes
     raw = modImg.tostring()
     image = zbar.Image(width, height, 'Y800', raw)
