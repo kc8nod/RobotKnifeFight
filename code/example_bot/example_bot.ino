@@ -36,7 +36,7 @@ byte actionCount = 0;
 boolean gameOn = false;
 
 byte DestIndex = MY_BOT_ID;
-byte Destinations[4][2] = {{6,6},{6,40},{64,40},{64,6}};
+byte Destinations[4][2] = {{10,10},{10,36},{60,36},{60,10}};
 
 /*
   Setup
@@ -139,7 +139,7 @@ void loop(){
             if(timeToStop == 0 and timeToGo<millis()){
               speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-              timeToStop = millis() + (100+50*(rotAmountTo-1));
+              timeToStop = millis() + 100;
               timeToGo = timeToStop + 1000;
               actionCount++;
             }
@@ -153,7 +153,7 @@ void loop(){
             if(timeToStop == 0 and timeToGo<millis()){
               speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
-              timeToStop = millis() + (100+50*(rotAmountTo-1));
+              timeToStop = millis() + 100;
               timeToGo = timeToStop + 1000;
               actionCount++;
             }
@@ -194,6 +194,7 @@ void loop(){
     timeLastServoUpdate = millis();
   }
   
+  //Output various statuses and values nce in a while.
   if(millis()-timeLastStatus > 1000){
     outputStatus();
     timeLastStatus = millis();
