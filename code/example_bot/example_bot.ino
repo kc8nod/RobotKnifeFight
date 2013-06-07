@@ -35,6 +35,9 @@ byte actionCount = 0;
 
 boolean gameOn = false;
 
+byte DestIndex = MY_BOT_ID;
+byte Destinations[4][2] = {{6,6},{6,40},{64,40},{64,6}};
+
 /*
   Setup
 ------------------------------------------------------------------------------*/
@@ -57,10 +60,9 @@ void setup(){
   
   outputHelp();
   
-  //Define Target point and heading
-  Target.x = 12;
-  Target.y = 12;
-  Target.heading = 0;
+  //Define Target point
+  Target.x = Destinations[DestIndex][0];
+  Target.y = Destinations[DestIndex][1];
   
 }
 
@@ -110,58 +112,71 @@ void loop(){
       distanceTo = byte(Me.distance(Target));
       
       //what is the heading to the Target point?
-      //convert the bearing to a heading of 0-15 increasing counter clockwise
-      headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
-    
-  
-      //what is the rotation direction and amount needed?
-      int hdiff = (headingTo-Me.heading);
-      if (hdiff==0){
-        //I'm facing the right way to the Target point
-        Stop();
-        rotAmountTo = 0;
+      headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
+      
+      //if farther than 6 inches to Target
+      if(distanceTo > 6 ){
         
-        
-      }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
-        //Turn left
-        rotAmountTo = (16+abs(hdiff))%16;
-        if (rotAmountTo > 0){
-          //turn left then wait a little bit
-          if(timeToStop == 0 and timeToGo<millis()){
-            speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
-            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-            timeToStop = millis() + (100+50*(rotAmountTo-1));
-            timeToGo = timeToStop + 1000;
-            actionCount++;
+        //what is the rotation direction and amount needed?
+        int hdiff = (headingTo-Me.heading);
+        if (hdiff==0){
+          //I'm facing the right way to the Target point
+          Stop();
+          rotAmountTo = 0;
+          
+          //drive towards it.
+          speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+          speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
+          timeToStop = millis() + 200;
+          timeToGo = timeToStop + 1000;
+          actionCount++;
+          
+        }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
+          //Turn left
+          rotAmountTo = (16+abs(hdiff))%16;
+          if (rotAmountTo > 0){
+            //turn left then wait a little bit
+            if(timeToStop == 0 and timeToGo<millis()){
+              speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
+              speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
+              timeToStop = millis() + (100+50*(rotAmountTo-1));
+              timeToGo = timeToStop + 1000;
+              actionCount++;
+            }
+          }
+          
+        }else{
+          //Turn right
+          rotAmountTo = (16-abs(hdiff))%16;
+          if (rotAmountTo > 0){
+            //turn right then wait a little bit
+            if(timeToStop == 0 and timeToGo<millis()){
+              speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+              speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
+              timeToStop = millis() + (100+50*(rotAmountTo-1));
+              timeToGo = timeToStop + 1000;
+              actionCount++;
+            }
           }
         }
-        
       }else{
-        //Turn right
-        rotAmountTo = (16-abs(hdiff))%16;
-        if (rotAmountTo > 0){
-          //turn right then wait a little bit
-          if(timeToStop == 0 and timeToGo<millis()){
-            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
-            speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
-            timeToStop = millis() + (100+50*(rotAmountTo-1));
-            timeToGo = timeToStop + 1000;
-            actionCount++;
-          }
-        }
+        //withinrange of the current destination, set the nest one.
+        DestIndex = (DestIndex+1)%4;
+        Target.x = Destinations[DestIndex][0];
+        Target.y = Destinations[DestIndex][1];
       }
-    }
+      
+    } //end valid Me position
     
-    //if a bump switch is triggered backup until it is not triggered
-    boolean hit_something = false;
+    //if a bump switch is triggered backup
     if(!digitalRead(BUMP_SWITCH_RIGHT_PIN) || !digitalRead(BUMP_SWITCH_LEFT_PIN)){
-      hit_something = true;
       speed_L = LEFT_REV;
       speed_R = RIGHT_REV;
-      timeToStop = millis() + 100; //reverse for 100ms
+      timeToStop = millis() + 200; //reverse for 200ms
+      timeToGo = timeToStop + 1000;
     }
     
-  }
+  } //end game on
   
   
   //-------------------------------------------
