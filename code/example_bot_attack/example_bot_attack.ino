@@ -35,6 +35,8 @@ byte actionCount = 0;
 
 boolean gameOn = false;
 
+byte TargetIndex = MY_BOT_ID;
+
 /*
   Setup
 ------------------------------------------------------------------------------*/
@@ -53,7 +55,7 @@ void setup(){
   
   serialInputString.reserve(16);
   Serial.begin(115200);
-  Serial.println("example_bot0: patrol");
+  Serial.println("example_bot: attack");
   
   outputHelp();
 }
@@ -64,19 +66,34 @@ void setup(){
 ------------------------------------------------------------------------------*/
 void loop(){
   //Get Radio data if available
-  if(millis()-timeLastRadioAttempt>50){  //onlt check for new message every 50ms
+  if(millis()-timeLastRadioAttempt>50){  //only check for new message every 50ms
     Serial.print(".");
     if(radio.recv()){  //if a radio message has been received
       switch(radio.packet.message)  //Do stuff based on message type.  
       {
         case RKF_POSITION_MESSAGE:  // position message
           timeLastMessage = millis();
-          if(radio.packet.robot[MY_BOT_ID].x>0 || radio.packet.robot[MY_BOT_ID].y>0){
+          if(validPosition(radio.packet.robot[MY_BOT_ID])){
             Me = radio.packet.robot[MY_BOT_ID]; //update my location
-            
-            Target = radio.packet.robot[MY_BOT_ID]; //DERP!!!!
-            
           }
+          for(byte i=0; i<4; i++){
+            if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].valid==1){
+              //is the current bot's distance closer than the target bot's?
+              if(Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
+                //New Target
+                TargetIndex = i;
+                
+              }
+            }
+          }
+          
+          Target = radio.packet.robot[TargetIndex];
+          //what is the distance to the Target point?
+          distanceTo = byte(Me.distance(Target));
+          //what is the heading to the Target point?
+          //convert the bearing to a heading of 0-15 increasing counter clockwise
+          headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
+          
           Serial.print("+");
           break;  
       }
@@ -99,14 +116,7 @@ void loop(){
   }
   if(gameOn){
     //go to the Target point
-    
-    if(Me.x>0 || Me.y>0){  //if my position is valid.
-      
-      //what is the distance to the Target point?
-      distanceTo = byte(Me.distance(Target));
-      
-      //what is the heading to the Target point?
-      headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
+    if(validPosition(Me)){  //if my position is valid.
       
       //if farther than 4 inches to Target
       if(distanceTo > 4 ){
@@ -153,10 +163,9 @@ void loop(){
           }
         }
       }else{
-        //withinrange of the current destination, set the nest one.
-        DestIndex = (DestIndex+1)%4;
-        Target.x = Destinations[DestIndex][0];
-        Target.y = Destinations[DestIndex][1];
+        //withinrange of the current Target
+        //Target.x = Destinations[DestIndex][0];
+        //Target.y = Destinations[DestIndex][1];
       }
       
     } //end valid Me position
@@ -207,6 +216,15 @@ void Stop(){
   
   if(timeToGo <= millis()){
     actionCount = 0;
+  }
+}
+
+boolean validPosition(RKF_Position pos){
+  if(pos.x>0 || pos.y>0){
+    return true;
+  }
+  else{
+    return false;
   }
 }
 

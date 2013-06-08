@@ -56,7 +56,7 @@ void setup(){
   
   serialInputString.reserve(16);
   Serial.begin(115200);
-  Serial.println("example_bot0: patrol");
+  Serial.println("example_bot: patrol");
   
   outputHelp();
   
@@ -72,7 +72,7 @@ void setup(){
 ------------------------------------------------------------------------------*/
 void loop(){
   //Get Radio data if available
-  if(millis()-timeLastRadioAttempt>50){  //onlt check for new message every 50ms
+  if(millis()-timeLastRadioAttempt>50){  //only check for new message every 50ms
     Serial.print(".");
     if(radio.recv()){  //if a radio message has been received
       switch(radio.packet.message)  //Do stuff based on message type.  
