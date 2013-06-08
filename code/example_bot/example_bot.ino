@@ -36,7 +36,7 @@ byte actionCount = 0;
 boolean gameOn = false;
 
 byte DestIndex = MY_BOT_ID;
-byte Destinations[4][2] = {{10,10},{10,36},{60,36},{60,10}};
+byte Destinations[4][2] = {{8,8},{8,38},{62,38},{62,8}};
 
 /*
   Setup
@@ -95,13 +95,12 @@ void loop(){
   //-------------------------------------------
   
   //indicate time of last message with status LED
-  if((millis()-timeLastMessage) < 5000) {
-    digitalWrite(STATUS_LED_PIN, true); //message recieved in last 5000ms
+  if((millis()-timeLastMessage) < 2000) {
+    digitalWrite(STATUS_LED_PIN, true); //message recieved in last 2000ms
     gameOn = true;
   }else{
     digitalWrite(STATUS_LED_PIN, false);
     gameOn = false;
-    Stop();
   }
   if(gameOn){
     //go to the Target point
@@ -114,23 +113,22 @@ void loop(){
       //what is the heading to the Target point?
       headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
       
-      //if farther than 6 inches to Target
-      if(distanceTo > 6 ){
+      //if farther than 4 inches to Target
+      if(distanceTo > 4 ){
         
         //what is the rotation direction and amount needed?
         int hdiff = (headingTo-Me.heading);
         if (hdiff==0){
           //I'm facing the right way to the Target point
-          Stop();
           rotAmountTo = 0;
-          
-          //drive towards it.
-          speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
-          speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-          timeToStop = millis() + 200;
-          timeToGo = timeToStop + 1000;
-          actionCount++;
-          
+          if(timeToStop == 0 and timeToGo<millis()){
+            //drive towards it.
+            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.115); //compensate for rightward drift.
+            timeToStop = millis() + 2000;
+            timeToGo = timeToStop + 1000;
+            actionCount++;
+          }
         }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
           //Turn left
           rotAmountTo = (16+abs(hdiff))%16;
@@ -168,13 +166,7 @@ void loop(){
       
     } //end valid Me position
     
-    //if a bump switch is triggered backup
-    if(!digitalRead(BUMP_SWITCH_RIGHT_PIN) || !digitalRead(BUMP_SWITCH_LEFT_PIN)){
-      speed_L = LEFT_REV;
-      speed_R = RIGHT_REV;
-      timeToStop = millis() + 200; //reverse for 200ms
-      timeToGo = timeToStop + 1000;
-    }
+    
     
   } //end game on
   
@@ -187,6 +179,14 @@ void loop(){
     Stop();
   }
   
+  //if a bump switch is triggered backup
+  if(!digitalRead(BUMP_SWITCH_RIGHT_PIN) || !digitalRead(BUMP_SWITCH_LEFT_PIN)){
+    speed_L = LEFT_REV;
+    speed_R = RIGHT_REV;
+    timeToStop = millis() + 500;
+    timeToGo = timeToStop + 1000;
+  }
+    
   //Update Servo positions  
   if(millis() - timeLastServoUpdate > 15){  //limit servo updating to every 15ms at most
     LeftDrive.write(speed_L);
