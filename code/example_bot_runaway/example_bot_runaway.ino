@@ -32,17 +32,17 @@ RKF_Position Dest;
 int headingTo = 0;
 byte distanceTo = 0;
 byte rotAmountTo = 0;
-byte actionCount = 0;
 
 boolean gameOn = false;
 
 byte TargetIndex = MY_BOT_ID;
 
 byte PosIndex = 0;
-byte Pos[16][2] = {{6,6},{6,18},{6,30},{6,40}
-                  ,{18,40},{30,40},{40,40},{52,40}
-                  ,{64,40},{64,30},{64,18},{64,6}
-                  ,{52,6},{40,6},{30,6},{18,6}};
+//byte Pos[16][2] = {{6,6},{6,18},{6,30},{6,40}
+//                  ,{18,40},{30,40},{40,40},{52,40}
+//                  ,{64,40},{64,30},{64,18},{64,6}
+//                  ,{52,6},{40,6},{30,6},{18,6}};
+byte Pos[4][2] = {{6,6},{6,40},{64,40},{64,6}};
 
 /*
   Setup
@@ -62,7 +62,7 @@ void setup(){
   
   serialInputString.reserve(16);
   Serial.begin(115200);
-  Serial.println("example_bot: attack");
+  Serial.println("example_bot: runaway");
   
   outputHelp();
 }
@@ -118,31 +118,27 @@ void loop(){
   if(gameOn){
     if(validPosition(Me)){  //if my position is valid.
     
-      //What position am I?
-      byte MePosIndex = whatPosClosest(Me);
-    
       //Where should I go?
-      byte PosIndex = whichPosFarther(Target, MePosIndex);
+      byte PosIndex = whichPosFarthest(Target);
       Dest.x = Pos[PosIndex][0];
       Dest.y = Pos[PosIndex][1];
       distanceTo = byte(Me.distance(Dest));
       headingTo = int(16 + round( -Me.bearing(Dest)/(PI/8) + (PI/16) ))%16;
       
-      //if farther than 4 inches to Destination
-      if(distanceTo > 4 ){
+      //if farther than 6 inches to Destination
+      if(distanceTo > 6 ){
         
         //what is the rotation direction and amount needed?
         int hdiff = (headingTo-Me.heading);
         if (hdiff==0){
-          //I'm facing the right way to the Destination point
+          //I'm facing the correct(ish) way to the Destination point
           rotAmountTo = 0;
           if(timeToStop == 0 and timeToGo<millis()){
             //drive towards it.
-            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
-            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.115); //compensate for rightward drift.
-            timeToStop = millis() + 2000;
-            timeToGo = timeToStop + 1000;
-            actionCount++;
+            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.3);
+            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.345); //compensate for rightward drift.
+            timeToStop = millis() + 3000;
+            timeToGo = timeToStop + 750;
           }
         }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
           //Turn left
@@ -152,9 +148,44 @@ void loop(){
             if(timeToStop == 0 and timeToGo<millis()){
               speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
+              timeToStop = millis() + 200;
+              timeToGo = timeToStop + 750;
+            }
+          }
+          
+        }else{
+          //Turn right
+          rotAmountTo = (16-abs(hdiff))%16;
+          if (rotAmountTo > 0){
+            //turn right then wait a little bit
+            if(timeToStop == 0 and timeToGo<millis()){
+              speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
+              speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
+              timeToStop = millis() + 200;
+              timeToGo = timeToStop + 750;
+            }
+          }
+        }
+      }else{
+        //withinrange of the current Destination
+        //face the Target, don't turn your back
+        headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16;
+        int hdiff = (headingTo-Me.heading);
+        if (hdiff==0){
+          //I'm facing the correct way to the Target
+          rotAmountTo = 0;
+          //Do Nothing, wait for an opening
+          
+        }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
+          //Turn left
+          rotAmountTo = (16+abs(hdiff))%16;
+          if (rotAmountTo > 0){
+            //turn left then wait a little bit
+            if(timeToStop == 0 and timeToGo<millis()){
+              speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
+              speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
               timeToStop = millis() + 100;
-              timeToGo = timeToStop + 1000;
-              actionCount++;
+              timeToGo = timeToStop + 750;
             }
           }
           
@@ -167,16 +198,10 @@ void loop(){
               speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
               timeToStop = millis() + 100;
-              timeToGo = timeToStop + 1000;
-              actionCount++;
+              timeToGo = timeToStop + 750;
             }
           }
         }
-      }else{
-        //withinrange of the current Destination
-        PosIndex = whichPosFarther(Target, PosIndex);
-        Dest.x = Pos[PosIndex][0];
-        Dest.y = Pos[PosIndex][1];
       }
       
     } //end valid Me position
@@ -199,7 +224,7 @@ void loop(){
     speed_L = LEFT_REV;
     speed_R = RIGHT_REV;
     timeToStop = millis() + 500;
-    timeToGo = timeToStop + 1000;
+    timeToGo = timeToStop + 750;
   }
     
   //Update Servo positions  
@@ -224,10 +249,6 @@ void Stop(){
   speed_L = LEFT_STOP;
   speed_R = RIGHT_STOP;
   timeToStop = 0;
-  
-  if(timeToGo <= millis()){
-    actionCount = 0;
-  }
 }
 
 boolean validPosition(RKF_Position pos){
@@ -247,7 +268,7 @@ byte whatPosClosest(RKF_Position p0){
   RKF_Position p1;
   byte index = 0;
   byte closest = 255;
-  for(byte i=0; i<16; i++){
+  for(byte i=0; i<4; i++){
     p1.x = Pos[i][0];
     p1.y = Pos[i][1];
     byte d = p0.distance(p1);
@@ -263,12 +284,12 @@ byte whatPosClosest(RKF_Position p0){
 byte whichPosFarther(RKF_Position p0, byte index){
   RKF_Position p1;
   
-  byte L = (index+1)%16;
+  byte L = (index+1)%4;
   p1.x = Pos[L][0];
   p1.y = Pos[L][1];
   byte Ld = p0.distance(p1);
   
-  byte R = (index-1)%16;
+  byte R = (index-1)%4;
   p1.x = Pos[R][0];
   p1.y = Pos[R][1];
   byte Rd = p0.distance(p1);
@@ -278,4 +299,21 @@ byte whichPosFarther(RKF_Position p0, byte index){
   }else{
     return R;
   }
+}
+
+//Which position is farthest the one to the left or right?
+byte whichPosFarthest(RKF_Position p0){
+  RKF_Position p1;
+  byte index = 0;
+  byte farthest = 0;
+  for(byte i=0; i<4; i++){
+    p1.x = Pos[i][0];
+    p1.y = Pos[i][1];
+    byte d = p0.distance(p1);
+    if(d > farthest){
+      farthest = d;
+      index = i;
+    }
+  }
+  return index;
 }

@@ -35,7 +35,7 @@ byte actionCount = 0;
 
 boolean gameOn = false;
 
-byte DestIndex = MY_BOT_ID;
+byte DestIndex = 255;
 byte Destinations[4][2] = {{8,8},{8,38},{62,38},{62,8}};
 
 /*
@@ -59,10 +59,6 @@ void setup(){
   Serial.println("example_bot: patrol");
   
   outputHelp();
-  
-  //Define Target point
-  Target.x = Destinations[DestIndex][0];
-  Target.y = Destinations[DestIndex][1];
   
 }
 
@@ -103,18 +99,19 @@ void loop(){
     gameOn = false;
   }
   if(gameOn){
-    //go to the Target point
-    
     if(Me.x>0 || Me.y>0){  //if my position is valid.
-      
+      if(DestIndex==255){
+        DestIndex = whatPosClosest(Me);
+      }
+    
       //what is the distance to the Target point?
       distanceTo = byte(Me.distance(Target));
       
       //what is the heading to the Target point?
       headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
       
-      //if farther than 4 inches to Target
-      if(distanceTo > 4 ){
+      //if farther than 8 inches to Target
+      if(distanceTo > 8 ){
         
         //what is the rotation direction and amount needed?
         int hdiff = (headingTo-Me.heading);
@@ -123,10 +120,10 @@ void loop(){
           rotAmountTo = 0;
           if(timeToStop == 0 and timeToGo<millis()){
             //drive towards it.
-            speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
-            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.115); //compensate for rightward drift.
-            timeToStop = millis() + 2000;
-            timeToGo = timeToStop + 1000;
+            speed_L = throttle(LEFT_FWD, LEFT_STOP, 1.0);
+            speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 1.0);
+            timeToStop = millis() + (1000*distanceTo/8);
+            timeToGo = timeToStop + 900;
             actionCount++;
           }
         }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
@@ -137,8 +134,8 @@ void loop(){
             if(timeToStop == 0 and timeToGo<millis()){
               speed_L = throttle(LEFT_REV, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
-              timeToStop = millis() + 100;
-              timeToGo = timeToStop + 1000;
+              timeToStop = millis() + (50*rotAmountTo);
+              timeToGo = timeToStop + 900;
               actionCount++;
             }
           }
@@ -151,8 +148,8 @@ void loop(){
             if(timeToStop == 0 and timeToGo<millis()){
               speed_L = throttle(LEFT_FWD, LEFT_STOP, 0.1);
               speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
-              timeToStop = millis() + 100;
-              timeToGo = timeToStop + 1000;
+              timeToStop = millis() + (50*rotAmountTo);
+              timeToGo = timeToStop + 900;
               actionCount++;
             }
           }
@@ -194,7 +191,7 @@ void loop(){
     timeLastServoUpdate = millis();
   }
   
-  //Output various statuses and values nce in a while.
+  //Output various statuses and values once in a while.
   if(millis()-timeLastStatus > 1000){
     outputStatus();
     timeLastStatus = millis();
@@ -217,4 +214,20 @@ void Stop(){
 
 int throttle(int Direction, int Stop, float Throttle){
   return int((Direction-Stop)*Throttle + Stop);
+}
+
+byte whatPosClosest(RKF_Position p0){
+  RKF_Position p1;
+  byte index = 0;
+  byte closest = 255;
+  for(byte i=0; i<4; i++){
+    p1.x = Destinations[i][0];
+    p1.y = Destinations[i][1];
+    byte d = p0.distance(p1);
+    if(d < closest){
+      closest = d;
+      index = i;
+    }
+  }
+  return index;
 }
