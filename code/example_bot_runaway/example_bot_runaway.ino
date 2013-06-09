@@ -27,6 +27,7 @@ String serialInputString = "";  // a string to hold incoming data
 
 RKF_Position Me;
 RKF_Position Target;
+RKF_Position Dest;
 
 int headingTo = 0;
 byte distanceTo = 0;
@@ -36,6 +37,12 @@ byte actionCount = 0;
 boolean gameOn = false;
 
 byte TargetIndex = MY_BOT_ID;
+
+byte PosIndex = 0;
+byte Pos[16][2] = {{6,6},{6,18},{6,30},{6,40}
+                  ,{18,40},{30,40},{40,40},{52,40}
+                  ,{64,40},{64,30},{64,18},{64,6}
+                  ,{52,6},{40,6},{30,6},{18,6}};
 
 /*
   Setup
@@ -82,17 +89,11 @@ void loop(){
               if(TargetIndex==MY_BOT_ID || Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
                 //New Target
                 TargetIndex = i;
-                
               }
             }
           }
           
           Target = radio.packet.robot[TargetIndex];
-          //what is the distance to the Target point?
-          distanceTo = byte(Me.distance(Target));
-          //what is the heading to the Target point?
-          //convert the bearing to a heading of 0-15 increasing counter clockwise
-          headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
           
           Serial.print("+");
           break;  
@@ -115,16 +116,25 @@ void loop(){
     gameOn = false;
   }
   if(gameOn){
-    //go to the Target point
     if(validPosition(Me)){  //if my position is valid.
+    
+      //What position am I?
+      byte MePosIndex = whatPosClosest(Me);
+    
+      //Where should I go?
+      byte PosIndex = whichPosFarther(Target, MePosIndex);
+      Dest.x = Pos[PosIndex][0];
+      Dest.y = Pos[PosIndex][1];
+      distanceTo = byte(Me.distance(Dest));
+      headingTo = int(16 + round( -Me.bearing(Dest)/(PI/8) + (PI/16) ))%16;
       
-      //if farther than 4 inches to Target
+      //if farther than 4 inches to Destination
       if(distanceTo > 4 ){
         
         //what is the rotation direction and amount needed?
         int hdiff = (headingTo-Me.heading);
         if (hdiff==0){
-          //I'm facing the right way to the Target point
+          //I'm facing the right way to the Destination point
           rotAmountTo = 0;
           if(timeToStop == 0 and timeToGo<millis()){
             //drive towards it.
@@ -163,9 +173,10 @@ void loop(){
           }
         }
       }else{
-        //withinrange of the current Target
-        //Target.x = Destinations[DestIndex][0];
-        //Target.y = Destinations[DestIndex][1];
+        //withinrange of the current Destination
+        PosIndex = whichPosFarther(Target, PosIndex);
+        Dest.x = Pos[PosIndex][0];
+        Dest.y = Pos[PosIndex][1];
       }
       
     } //end valid Me position
@@ -230,4 +241,41 @@ boolean validPosition(RKF_Position pos){
 
 int throttle(int Direction, int Stop, float Throttle){
   return int((Direction-Stop)*Throttle + Stop);
+}
+
+byte whatPosClosest(RKF_Position p0){
+  RKF_Position p1;
+  byte index = 0;
+  byte closest = 255;
+  for(byte i=0; i<16; i++){
+    p1.x = Pos[i][0];
+    p1.y = Pos[i][1];
+    byte d = p0.distance(p1);
+    if(d < closest){
+      closest = d;
+      index = i;
+    }
+  }
+  return index;
+}
+
+//Which position is farther the one to the left or right?
+byte whichPosFarther(RKF_Position p0, byte index){
+  RKF_Position p1;
+  
+  byte L = (index+1)%16;
+  p1.x = Pos[L][0];
+  p1.y = Pos[L][1];
+  byte Ld = p0.distance(p1);
+  
+  byte R = (index-1)%16;
+  p1.x = Pos[R][0];
+  p1.y = Pos[R][1];
+  byte Rd = p0.distance(p1);
+  
+  if(Ld > Rd){
+    return L;
+  }else{
+    return R;
+  }
 }
