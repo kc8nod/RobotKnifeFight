@@ -79,7 +79,7 @@ void loop(){
           for(byte i=0; i<4; i++){
             if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].valid==1){
               //is the current bot's distance closer than the target bot's?
-              if(Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
+              if(TargetIndex==MY_BOT_ID || Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
                 //New Target
                 TargetIndex = i;
                 
