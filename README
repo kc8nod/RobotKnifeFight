@@ -1,5 +1,28 @@
+Robot Knife Fight v0.10 (master)
 
-code/arena/        python script that interfaces to the camera and sends commands to the transmitter
-code/rkf_xmit/     arduino code for the transmitter
+Robot Knife Fight is a game that uses Python 2.7+, Arduino v1.0.3+, OpenCV 2.4.5+, and zbar 0.10 to scan a video source for QR codes for robot positions, if the robot is alive, and the arena's edges.  The position is sent out via an Arduino transmitter using a Virtual Wire 433Mhz Radio to each Arduino robot.  Each robot has a balloon covering it's DEAD symbol that also holds down it's power button.  When it's balloon pops the robot turns off.
 
-3d_model/          google sketchup design files
+The game is simple.  Each robot tries to pop the balloon of the other robots and be the last alive.
+
+We are currently in Beta stages.  Positioning works but could use optimizations.  The 433Mhz Radio that each Arduino uses to received the position of itself and the other robots could use review.  The QR scanning with zbar can be set to focus on just the arena area.  Setting zbar to increase the number of scanning passes on certain areas of the image is also possible.
+
+3d_model/                           #Sketchup design files for the robot.
+code/arena/                         #Python script that scans the video for QR codes and sends commands to the transmitter.
+code/example_bot_attack /           #Arduino robot code that drives straight towards the nearest living robot.
+code/example_bot_patrol/            #Arduino robot code patrols between 4 points.
+code/libraries/                     #Libraries you will need to copy to your 'arduino/libraries' folder.
+code/rkf_xmit/                      #Arduino code for the transmitter.
+code/serial_drivable_bot/           #Arduino robot code that's drivable via serial commands (Xbee, Bluetooth, etc.)
+code/serial_keyboard_controller/    #Processing script to drive up to 2 bots via serial connections.
+harware/                            #Shield Schematic for Virtual Wire Radio, servo connectors, switch connectors, and a serial module (Bluetooth Mate, FTDI pinout).
+lasercut/                           #The exported DXF file of the Flat_Pack.skp for lasercutting the robot.
+qrcodes/                            #PNG files of the QR codes for the arena corners (A###-C#), Robot symbols (http://###), and the Robot death symbols (DEAD###).
+                                    #(Suggested print sizes of 5.25"x5.25" for arena corners and 4.25"x4.25" for robot symbols.)
+
+Check http://i3detroit.com for events.
+
+https://github.com/SWiT/RobotKnifeFight
+https://github.com/kc8nod/RobotKnifeFight
+
+https://github.com/SWiT/RobotFightClubArena
+
