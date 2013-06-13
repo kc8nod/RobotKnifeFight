@@ -205,18 +205,14 @@ while True:
                 wallCenterY = findDiffPt(arenaCorners[0],arenaCorners[1])
                 maxX = arenaCorners[3][0]-arenaCorners[0][0]
                 maxY = arenaCorners[1][1]-arenaCorners[0][1]
-                arenaPtX = pt[0]-wallCenterY[0]
-                arenaPtY = pt[1]-wallCenterX[1]
-                arenaPtX = int(float(arenaPtX)/float(maxX)*arenaSize[0])
-                arenaPtY = int(float(arenaPtY)/float(maxY)*arenaSize[1])
+                arenaPtX = int(float(pt[0]-wallCenterY[0])/float(maxX)*arenaSize[0])
+                arenaPtY = int(arenaSize[1]-float(pt[1]-wallCenterX[1])/float(maxY)*arenaSize[1])
                 botLocArena[botId] = (arenaPtX, arenaPtY)
 
             #update the bots heading
             x = symbol.location[3][0] - symbol.location[0][0]
             y = symbol.location[3][1] - symbol.location[0][1]
-            h = math.degrees((math.pi/2) - math.atan2(y,x))
-            h = int(math.floor((h+11.25)/22.5))
-            if h < 0: h = 16 + h
+            h = int(math.floor((math.pi/2-math.atan2(y,x)+math.pi/16)/(math.pi/8)))%16;
             botHeading[botId] = h
 
             #draw the borders, heading, and text for bot symbol

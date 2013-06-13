@@ -36,7 +36,7 @@ byte actionCount = 0;
 boolean gameOn = false;
 
 byte DestIndex = 255;
-byte Destinations[4][2] = {{8,8},{8,38},{62,38},{62,8}};
+byte Destinations[4][2] = {{8,38},{8,8},{62,8},{62,38}};
 
 /*
   Setup
@@ -108,7 +108,7 @@ void loop(){
       distanceTo = byte(Me.distance(Target));
       
       //what is the heading to the Target point?
-      headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
+      headingTo = int(16 + round(Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
       
       //if farther than 8 inches to Target
       if(distanceTo > 8 ){

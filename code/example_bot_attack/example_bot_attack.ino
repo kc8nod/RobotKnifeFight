@@ -92,7 +92,7 @@ void loop(){
           distanceTo = byte(Me.distance(Target));
           //what is the heading to the Target point?
           //convert the bearing to a heading of 0-15 increasing counter clockwise
-          headingTo = int(16 + round( -Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
+          headingTo = int(16 + round(Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
           
           Serial.print("+");
           break;  
