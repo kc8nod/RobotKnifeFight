@@ -33,7 +33,9 @@ void outputStatus(){
   Serial.print(speed_R);
   Serial.println();
   
-  Serial.print("Target: (");
+  Serial.print("DestIndex ");
+  Serial.print(DestIndex);
+  Serial.print(" Target: (");
   Serial.print(Target.x);
   Serial.print(", ");
   Serial.print(Target.y);
@@ -47,8 +49,6 @@ void outputStatus(){
   Serial.print(headingTo);
   Serial.print("\trotAmountTo:");
   Serial.print(rotAmountTo);
-  Serial.print("\tactionCount:");
-  Serial.print(actionCount);
   Serial.println();
   
   for (byte i=0; i<4; i++){
@@ -85,5 +85,5 @@ void outputBotStatus(byte i){
   Serial.print(") H");
   Serial.print(radio.packet.robot[i].heading);
   Serial.print(" ");
-  Serial.print(radio.packet.robot[i].valid);
+  Serial.print(radio.packet.robot[i].alive);
 }

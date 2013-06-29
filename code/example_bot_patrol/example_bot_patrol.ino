@@ -31,7 +31,6 @@ RKF_Position Target;
 int headingTo = 0;
 byte distanceTo = 0;
 byte rotAmountTo = 0;
-byte actionCount = 0;
 
 boolean gameOn = false;
 
@@ -68,22 +67,19 @@ void setup(){
 ------------------------------------------------------------------------------*/
 void loop(){
   //Get Radio data if available
-  if(millis()-timeLastRadioAttempt>50){  //only check for new message every 50ms
-    Serial.print(".");
-    if(radio.recv()){  //if a radio message has been received
-      switch(radio.packet.message)  //Do stuff based on message type.  
-      {
-        case RKF_POSITION_MESSAGE:  // position message
-          timeLastMessage = millis();
-          if(radio.packet.robot[MY_BOT_ID].x>0 || radio.packet.robot[MY_BOT_ID].y>0){
-            Me = radio.packet.robot[MY_BOT_ID]; //update my location
-          }
-          Serial.print("+");
-          break;  
-      }
+  if(radio.recv()){  //if a radio message has been received
+    switch(radio.packet.message)  //Do stuff based on message type.  
+    {
+      case RKF_POSITION_MESSAGE:  // position message
+        timeLastMessage = millis();
+        if(radio.packet.robot[MY_BOT_ID].x>0 || radio.packet.robot[MY_BOT_ID].y>0){
+          Me = radio.packet.robot[MY_BOT_ID]; //update my location
+        }
+        Serial.print("+");
+        break;  
     }
-    timeLastRadioAttempt = millis();
   }
+    
   
   processSerialInput();
   
@@ -103,6 +99,8 @@ void loop(){
       if(DestIndex==255){
         DestIndex = whatPosClosest(Me);
       }
+      Target.x = Destinations[DestIndex][0];
+      Target.y = Destinations[DestIndex][1];
     
       //what is the distance to the Target point?
       distanceTo = byte(Me.distance(Target));
@@ -124,7 +122,6 @@ void loop(){
             speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 1.0);
             timeToStop = millis() + (1000*distanceTo/8);
             timeToGo = timeToStop + 900;
-            actionCount++;
           }
         }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
           //Turn left
@@ -136,7 +133,6 @@ void loop(){
               speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
               timeToStop = millis() + (50*rotAmountTo);
               timeToGo = timeToStop + 900;
-              actionCount++;
             }
           }
           
@@ -150,15 +146,12 @@ void loop(){
               speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
               timeToStop = millis() + (50*rotAmountTo);
               timeToGo = timeToStop + 900;
-              actionCount++;
             }
           }
         }
       }else{
         //withinrange of the current destination, set the nest one.
         DestIndex = (DestIndex+1)%4;
-        Target.x = Destinations[DestIndex][0];
-        Target.y = Destinations[DestIndex][1];
       }
       
     } //end valid Me position
@@ -197,7 +190,7 @@ void loop(){
     timeLastStatus = millis();
   }
     
-  delay(1);
+  //delay(1);
 }
 /*----------------------------------------------------------------------------*/
 
@@ -206,10 +199,6 @@ void Stop(){
   speed_L = LEFT_STOP;
   speed_R = RIGHT_STOP;
   timeToStop = 0;
-  
-  if(timeToGo <= millis()){
-    actionCount = 0;
-  }
 }
 
 int throttle(int Direction, int Stop, float Throttle){
