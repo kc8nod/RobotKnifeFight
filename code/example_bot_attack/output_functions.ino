@@ -47,8 +47,7 @@ void outputStatus(){
   Serial.print(headingTo);
   Serial.print("\trotAmountTo:");
   Serial.print(rotAmountTo);
-  Serial.print("\tactionCount:");
-  Serial.print(actionCount);
+
   Serial.println();
   
   for (byte i=0; i<4; i++){

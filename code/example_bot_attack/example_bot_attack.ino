@@ -21,7 +21,6 @@ unsigned long timeLastStatus = 0;
 RKF_Radio radio;
 extern "C" { uint8_t vw_rx_active; };
 unsigned long timeLastMessage = 0;
-unsigned long timeLastRadioAttempt = 0;
 
 String serialInputString = "";  // a string to hold incoming data
 
@@ -31,7 +30,6 @@ RKF_Position Target;
 int headingTo = 0;
 byte distanceTo = 0;
 byte rotAmountTo = 0;
-byte actionCount = 0;
 
 boolean gameOn = false;
 
@@ -66,40 +64,36 @@ void setup(){
 ------------------------------------------------------------------------------*/
 void loop(){
   //Get Radio data if available
-  if(millis()-timeLastRadioAttempt>50){  //only check for new message every 50ms
-    Serial.print(".");
-    if(radio.recv()){  //if a radio message has been received
-      switch(radio.packet.message)  //Do stuff based on message type.  
-      {
-        case RKF_POSITION_MESSAGE:  // position message
-          timeLastMessage = millis();
-          if(validPosition(radio.packet.robot[MY_BOT_ID])){
-            Me = radio.packet.robot[MY_BOT_ID]; //update my location
-          }
-          for(byte i=0; i<4; i++){
-            if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].valid==1){
-              //is the current bot's distance closer than the target bot's?
-              if(TargetIndex==MY_BOT_ID || Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
-                //New Target
-                TargetIndex = i;
-                
-              }
+  if(radio.recv()){  //if a radio message has been received
+    switch(radio.packet.message)  //Do stuff based on message type.  
+    {
+      case RKF_POSITION_MESSAGE:  // position message
+        timeLastMessage = millis();
+        if(validPosition(radio.packet.robot[MY_BOT_ID])){
+          Me = radio.packet.robot[MY_BOT_ID]; //update my location
+        }
+        for(byte i=0; i<RKF_MAX_BOTS; i++){
+          if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].valid==1){
+            //is the current bot's distance closer than the target bot's?
+            if(TargetIndex==MY_BOT_ID || Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
+              //New Target
+              TargetIndex = i;
             }
           }
-          
-          Target = radio.packet.robot[TargetIndex];
-          //what is the distance to the Target point?
-          distanceTo = byte(Me.distance(Target));
-          //what is the heading to the Target point?
-          //convert the bearing to a heading of 0-15 increasing counter clockwise
-          headingTo = int(16 + round(Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
-          
-          Serial.print("+");
-          break;  
-      }
+        }
+        
+        Target = radio.packet.robot[TargetIndex];
+        //what is the distance to the Target point?
+        distanceTo = byte(Me.distance(Target));
+        //what is the heading to the Target point?
+        //convert the bearing to a heading of 0-15 increasing counter clockwise
+        headingTo = int(16 + round(Me.bearing(Target)/(PI/8) + (PI/16) ))%16; 
+        
+        Serial.print("+");
+        break;  
     }
-    timeLastRadioAttempt = millis();
   }
+    
   
   processSerialInput();
   
@@ -132,7 +126,7 @@ void loop(){
             speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.115); //compensate for rightward drift.
             timeToStop = millis() + 2000;
             timeToGo = timeToStop + 1000;
-            actionCount++;
+
           }
         }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
           //Turn left
@@ -144,7 +138,7 @@ void loop(){
               speed_R = throttle(RIGHT_FWD, RIGHT_STOP, 0.1);
               timeToStop = millis() + 100;
               timeToGo = timeToStop + 1000;
-              actionCount++;
+   
             }
           }
           
@@ -158,7 +152,7 @@ void loop(){
               speed_R = throttle(RIGHT_REV, RIGHT_STOP, 0.1);
               timeToStop = millis() + 100;
               timeToGo = timeToStop + 1000;
-              actionCount++;
+
             }
           }
         }
@@ -215,7 +209,7 @@ void Stop(){
   timeToStop = 0;
   
   if(timeToGo <= millis()){
-    actionCount = 0;
+
   }
 }
 
