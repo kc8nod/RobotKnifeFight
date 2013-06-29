@@ -73,7 +73,7 @@ void loop(){
           Me = radio.packet.robot[MY_BOT_ID]; //update my location
         }
         for(byte i=0; i<RKF_MAX_BOTS; i++){
-          if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].valid==1){
+          if(i!=MY_BOT_ID && validPosition(radio.packet.robot[i]) && radio.packet.robot[i].alive==1){
             //is the current bot's distance closer than the target bot's?
             if(TargetIndex==MY_BOT_ID || Me.distance(radio.packet.robot[i]) < Me.distance(radio.packet.robot[TargetIndex])){
               //New Target
@@ -102,12 +102,13 @@ void loop(){
   
   //indicate time of last message with status LED
   if((millis()-timeLastMessage) < 2000) {
-    digitalWrite(STATUS_LED_PIN, true); //message recieved in last 2000ms
+    //digitalWrite(STATUS_LED_PIN, true); //message recieved in last 2000ms
     gameOn = true;
   }else{
-    digitalWrite(STATUS_LED_PIN, false);
+    //digitalWrite(STATUS_LED_PIN, false);
     gameOn = false;
   }
+  
   if(gameOn){
     //go to the Target point
     if(validPosition(Me)){  //if my position is valid.
@@ -198,7 +199,7 @@ void loop(){
     timeLastStatus = millis();
   }
     
-  delay(1);
+  //delay(1);
 }
 /*----------------------------------------------------------------------------*/
 

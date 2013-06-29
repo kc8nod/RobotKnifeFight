@@ -13,7 +13,7 @@ class RKF_Position
   byte x;
   byte y;
   byte heading : 4;
-  byte valid   : 1;
+  byte fresh   : 1;
   byte alive   : 1;
  
   int distance(RKF_Position&);

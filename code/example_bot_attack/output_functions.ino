@@ -84,5 +84,5 @@ void outputBotStatus(byte i){
   Serial.print(") H");
   Serial.print(radio.packet.robot[i].heading);
   Serial.print(" ");
-  Serial.print(radio.packet.robot[i].valid);
+  Serial.print(radio.packet.robot[i].alive);
 }

@@ -74,7 +74,7 @@ size_t RKF_Radio::printTo(Print& prn) const
         prn.print(", ");
         prn.print(this->packet.robot[idx].heading);
         prn.print(", ");
-        prn.println(this->packet.robot[idx].valid);
+        prn.println(this->packet.robot[idx].alive);
       }
       break;
       
