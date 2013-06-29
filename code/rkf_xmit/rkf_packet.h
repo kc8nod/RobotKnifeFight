@@ -1,4 +1,5 @@
 
+#define RKF_MAX_BOTS 4
 
 class RKF_Position
 {
@@ -7,7 +8,8 @@ class RKF_Position
   byte x;
   byte y;
   byte heading : 4;
-  byte valid   : 1; 
+  byte valid   : 1;
+  byte alive   : 1; 
 };
 
 
@@ -17,15 +19,13 @@ class RKF_Packet
   
   union
   {
-    byte data[27];
+    byte data[13];
     
     struct
     {
-      byte command;
-      byte reserved0;
-      byte reserved1;
-      
-      RKF_Position robot[8];
+      byte message  : 4;
+      byte reserved : 4;      
+      RKF_Position robot[RKF_MAX_BOTS];
     };
     
   };

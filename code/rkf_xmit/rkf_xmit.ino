@@ -54,6 +54,7 @@ void loop()
       time_xmit_complete = now + xmit_min;
       
       // transmit the packet
+
       vw_wait_tx();
       digitalWrite(LED_PIN, HIGH);
       vw_send((uint8_t*) &send_pkt_buffer, send_data_len);      
@@ -64,9 +65,9 @@ void loop()
       printPacket(send_pkt_buffer);
     }
     
-    if(now > time_xmit_complete){
-      digitalWrite(LED_PIN, LOW);
-    }
+    vw_wait_tx();
+    digitalWrite(LED_PIN, LOW);
+    
     
   }else{
     digitalWrite(LED_PIN, LOW);
@@ -87,6 +88,8 @@ void set_position()
   byte y_pos;
   byte heading;
   byte valid;
+  byte alive;
+  
   RKF_Position * pRobot;
   
   index   = byte(atoi(sCmd.next()));
@@ -94,6 +97,7 @@ void set_position()
   y_pos   = byte(atoi(sCmd.next()));
   heading = byte(atoi(sCmd.next()));
   valid   = byte(atoi(sCmd.next()));
+  alive   = byte(atoi(sCmd.next()));
   
   
   pRobot = &send_pkt_buffer.robot[index];
@@ -102,6 +106,7 @@ void set_position()
   pRobot->y       = y_pos;
   pRobot->heading = heading;
   pRobot->valid   = valid;
+  pRobot->alive   = alive;
   
   send_data_len = sizeof(send_pkt_buffer);
 
@@ -201,9 +206,9 @@ void printHelp(){
   Serial.println("----------------");
   Serial.println("start [XMIT_PERIOD] [BAUD_RATE]");
   Serial.println("stop");
-  Serial.println("pos ROBOT_NUM X Y HEADING VALID");
+  Serial.println("pos ROBOT_NUM X Y HEADING VALID ALIVE");
   Serial.println("reset");
-  Serial.println("data BYTE0 [BYTE1] ... [BYTE26]");
+  Serial.println("data BYTE0 [BYTE1] ... [BYTE13]");
   Serial.println("? - display packet buffer");
   Serial.println("----------------");
 }
