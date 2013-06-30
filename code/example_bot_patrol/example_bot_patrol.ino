@@ -106,7 +106,7 @@ void loop(){
       distanceTo = byte(Me.distance(Target));
       
       //what is the heading to the Target point?
-      headingTo = int(16 + round(Me.bearing(Target)/(PI/8) + (PI/16) ))%16; //convert the bearing to a heading of 0-15 increasing counter clockwise
+      headingTo = int(64 + round(Me.bearing(Target)/(PI/32) + (PI/64) ))%64; //convert the bearing to a heading of 0-15 increasing counter clockwise
       
       //if farther than 8 inches to Target
       if(distanceTo > 8 ){
@@ -123,9 +123,9 @@ void loop(){
             timeToStop = millis() + (1000*distanceTo/8);
             timeToGo = timeToStop + 900;
           }
-        }else if (hdiff < -8 || (0 < hdiff && hdiff < 8)){
+        }else if (hdiff < -32 || (0 < hdiff && hdiff < 32)){
           //Turn left
-          rotAmountTo = (16+abs(hdiff))%16;
+          rotAmountTo = (64+abs(hdiff))%64;
           if (rotAmountTo > 0){
             //turn left then wait a little bit
             if(timeToStop == 0 and timeToGo<millis()){
@@ -138,7 +138,7 @@ void loop(){
           
         }else{
           //Turn right
-          rotAmountTo = (16-abs(hdiff))%16;
+          rotAmountTo = (64-abs(hdiff))%64;
           if (rotAmountTo > 0){
             //turn right then wait a little bit
             if(timeToStop == 0 and timeToGo<millis()){
