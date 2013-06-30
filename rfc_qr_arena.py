@@ -213,7 +213,7 @@ while True:
             #update the bots heading
             x = symbol.location[3][0] - symbol.location[0][0]
             y = symbol.location[3][1] - symbol.location[0][1]
-            h = int(math.floor((math.pi/2-math.atan2(y,x)+math.pi/16)/(math.pi/8)))%16;
+            h = int(math.floor((math.pi/2-math.atan2(y,x)+math.pi/64)/(math.pi/32)))%64;
             botHeading[botId] = h
 
             #draw the borders, heading, and text for bot symbol
@@ -261,7 +261,7 @@ while True:
         cv2.circle(outputImg, pt, 30, color, 2)
         textPt = (pt[0]-8, pt[1]+8)
         cv2.putText(outputImg, str(idx), textPt, cv2.FONT_HERSHEY_PLAIN, 1.5, color, 2)
-        ang = botHeading[idx]*math.pi/8
+        ang = botHeading[idx]*math.pi/32
         pt0 = ((pt[0]+int(math.cos(ang)*30)), (pt[1]-int(math.sin(ang)*30)))
         pt1 = ((pt[0]+int(math.cos(ang)*30*4)), (pt[1]-int(math.sin(ang)*30*4)))
         cv2.line(outputImg, pt0, pt1, color, 2)

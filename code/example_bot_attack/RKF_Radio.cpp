@@ -64,7 +64,7 @@ size_t RKF_Radio::printTo(Print& prn) const
   switch(this->packet.message)
   {
     case 1:
-      for (idx = 0; idx < 8; idx++)
+      for (idx = 0; idx < RKF_MAX_BOTS; idx++)
       {
         prn.print(idx);
         prn.print(": ");
@@ -75,6 +75,8 @@ size_t RKF_Radio::printTo(Print& prn) const
         prn.print(this->packet.robot[idx].heading);
         prn.print(", ");
         prn.println(this->packet.robot[idx].alive);
+        prn.print(", ");
+        prn.println(this->packet.robot[idx].fresh);
       }
       break;
       

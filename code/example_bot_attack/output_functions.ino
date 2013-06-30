@@ -27,6 +27,8 @@ void outputStatus(){
   Serial.print(Me.y);
   Serial.print(") H");
   Serial.print(Me.heading);
+  Serial.print(" F");
+  Serial.print(Me.fresh);
   Serial.print("\tL:");
   Serial.print(speed_L);
   Serial.print("\tR:");
@@ -39,6 +41,8 @@ void outputStatus(){
   Serial.print(Target.y);
   Serial.print(") H");
   Serial.print(Target.heading);
+  Serial.print(" F");
+  Serial.print(Target.fresh);
   Serial.println();
   
   Serial.print("\tdistanceTo:");
@@ -50,7 +54,7 @@ void outputStatus(){
 
   Serial.println();
   
-  for (byte i=0; i<4; i++){
+  for (byte i=0; i<RKF_MAX_BOTS; i++){
     outputBotStatus(i);
     Serial.println();
   } 
@@ -83,6 +87,8 @@ void outputBotStatus(byte i){
   Serial.print(radio.packet.robot[i].y);
   Serial.print(") H");
   Serial.print(radio.packet.robot[i].heading);
-  Serial.print(" ");
+  Serial.print(" A");
   Serial.print(radio.packet.robot[i].alive);
+  Serial.print(" F");
+  Serial.print(radio.packet.robot[i].fresh);
 }

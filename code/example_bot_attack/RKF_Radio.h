@@ -12,7 +12,7 @@ class RKF_Position
   
   byte x;
   byte y;
-  byte heading : 4;
+  byte heading : 6;
   byte fresh   : 1;
   byte alive   : 1;
  

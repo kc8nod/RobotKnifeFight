@@ -87,8 +87,8 @@ void set_position()
   byte x_pos;
   byte y_pos;
   byte heading;
-  byte valid;
   byte alive;
+  byte fresh;
   
   RKF_Position * pRobot;
   
@@ -96,8 +96,8 @@ void set_position()
   x_pos   = byte(atoi(sCmd.next()));
   y_pos   = byte(atoi(sCmd.next()));
   heading = byte(atoi(sCmd.next()));
-  valid   = byte(atoi(sCmd.next()));
   alive   = byte(atoi(sCmd.next()));
+  fresh   = byte(atoi(sCmd.next()));
   
   
   pRobot = &send_pkt_buffer.robot[index];
@@ -105,8 +105,8 @@ void set_position()
   pRobot->x       = x_pos;
   pRobot->y       = y_pos;
   pRobot->heading = heading;
-  pRobot->valid   = valid;
   pRobot->alive   = alive;
+  pRobot->fresh   = fresh;
   
   send_data_len = sizeof(send_pkt_buffer);
 
@@ -180,7 +180,7 @@ void printPacket(RKF_Packet &pkt)
 {
   //Serial.print("command type: ");
   //Serial.println(pkt.command, HEX);
-  for (int idx = 0; idx < 4; idx++)
+  for (int idx = 0; idx < RKF_MAX_BOTS; idx++)
   {
     if(idx>0){Serial.print(" ");}
     Serial.print('(');
@@ -190,7 +190,9 @@ void printPacket(RKF_Packet &pkt)
     Serial.print(',');
     Serial.print(pkt.robot[idx].heading);
     Serial.print(',');
-    Serial.print(pkt.robot[idx].valid);
+    Serial.print(pkt.robot[idx].alive);
+    Serial.print(',');
+    Serial.print(pkt.robot[idx].fresh);
     Serial.print(')');
   }
   Serial.print('\n');
